@@ -1,0 +1,8 @@
+/logs/
+/logs_LG/
+/old_logs
+*.pkl
+*.pdf
+*.root
+*.swp
+*.tex
