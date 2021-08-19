@@ -20,13 +20,15 @@ import csv
 import ROOT
 from ROOT import gPad, gStyle, gROOT
 
+# class defining the plotting parameters for different measures (e.g. movement) and different variables (e.g. Xpos)
+# the colors for different subdetectors are defined as well
 class Parameter:
-    name = ""
-    label = ""
-    cut = 0
-    veto = 0
-    minDraw = 0
-    maxDraw = 0
+    name = ""     # variable name
+    label = ""    # axis label
+    cut = 0       # threshold value
+    veto = 0      # veto value
+    minDraw = 0   # x-axis lower limit
+    maxDraw = 0   # x-axis upper limit
     def __init__(self, n, l, c, v, minDraw, maxDraw):
         self.name = n
         self.label = l
@@ -34,7 +36,7 @@ class Parameter:
         self.veto = v
         self.minDraw = minDraw
         self.maxDraw = maxDraw
-parameters = [
+parameters = [    # movements
     Parameter("Xpos", "#Deltax [#mum]", 5, 200, -30, 30 ), \
     Parameter("Ypos", "#Deltay [#mum]", 10, 200, -30, 30 ), \
     Parameter("Zpos", "#Deltaz [#mum]", 15, 200, -30, 30 ), \
@@ -42,7 +44,7 @@ parameters = [
     Parameter("Yrot", "#Delta#theta_{y} [#murad]", 30, 200, -50, 50 ), \
     Parameter("Zrot", "#Delta#theta_{z} [#murad]", 30, 200, -50, 50 )
     ]
-parameters_e = [
+parameters_e = [  # errors
     Parameter("Xpos", "#sigma_{#Deltax} [#mum]", 0, 10, -30, 30 ), \
     Parameter("Ypos", "#sigma_{#Deltay} [#mum]", 0, 10, -30, 30 ), \
     Parameter("Zpos", "#sigma_{#Deltaz} [#mum]", 0, 10, -30, 30 ), \
@@ -50,7 +52,7 @@ parameters_e = [
     Parameter("Yrot", "#sigma_{#Delta#theta_{y}} [#murad]", 0, 10, -50, 50 ), \
     Parameter("Zrot", "#sigma_{#Delta#theta_{z}} [#murad]", 0, 10, -50, 50 )
     ]
-parameters_sig = [
+parameters_sig = [ # significances
     Parameter("Xpos", "#Deltax/#sigma_{#Deltax}", 2.5, 0, -30, 30 ), \
     Parameter("Ypos", "#Deltay/#sigma_{#Deltay}", 2.5, 0, -30, 30 ), \
     Parameter("Zpos", "#Deltaz/#sigma_{#Deltaz}", 2.5, 0, -30, 30 ), \
@@ -59,7 +61,7 @@ parameters_sig = [
     Parameter("Zrot", "#Delta#theta_{z}/#sigma_{#Delta#theta_{z}}", 2.5, 0, -50, 50 )
     ]
 parDict = collections.OrderedDict( (p.name, p) for p in parameters )
-objects = [
+objects = [    # define color for different subdetectors
     ("Disk-1", ROOT.kBlack),
     ("Disk-2", ROOT.kCyan),
     ("Disk-3", ROOT.kBlue),
@@ -72,15 +74,14 @@ objects = [
     ("Layer4", ROOT.kOrange),
 ]
 
-#  ~plotDir = "./plots/PR_starting_2018B_mid2018D"
-plotDir = "./plots/PR_starting_2018B_diffHits/500Hits"
-#  ~plotDir = "./plots/317182"
+# method to save plots and create saving path if not exists
 def save(name, folder="plots", endings=[".pdf"]):
     if not os.path.exists(folder):
         os.makedirs(folder)
     for ending in endings:
         ROOT.gPad.GetCanvas().SaveAs(os.path.join(folder,name+ending))
 
+# method to get the runNo from a filename
 def runFromFilename(filename):
     m = re.match(".*run(\d+)/", filename)
     if m:
@@ -89,9 +90,11 @@ def runFromFilename(filename):
         print "Could not find run number for file", filename
         return 0
 
+# method to sort dictionary by key value
 def sortedDict(d):
     return collections.OrderedDict(sorted(d.items(), key=lambda t: t[0]))
 
+# method to get root object from DQM file
 def getFromFile(filename, objectname):
     f = ROOT.TFile(filename)
     if f.GetSize()<5000: # DQM files sometimes are empty
@@ -109,6 +112,7 @@ def randomName():
     from sys import maxint
     return "%x"%(randint(0, maxint))
 
+# method to merge overflow (and underflow) of a given histogram
 def mergeOverflow(h,includeUnderflow):
     N=h.GetNbinsX()
     entries=h.GetEntries()
@@ -135,9 +139,8 @@ def mergeOverflow(h,includeUnderflow):
         h.SetEntries(entries)
     return h
 
-#  ~def getInputHists(searchPath="/eos/cms/store/caf/user/dmeuser/PCL/condor_PCL_2018/output/HG_run*/DQM*.root"):
-#  ~def getInputHists(searchPath="/eos/cms/store/caf/user/dmeuser/PCL/condor_PCL_2018/2018B_PRstartingGeometry_iterativ_diffHits/50Hits/HG_run*/DQM*.root"):
-def getInputHists(searchPath="/eos/cms/store/caf/user/dmeuser/PCL/condor_PCL_2018/2018B_PRstartingGeometry_iterativ_diffHits/500Hits/HG_run*/DQM*.root"):
+# method to get histograms from list a given search path (returns multiple histograms per run)
+def getInputHists(searchPath):
     hists = {}
     for filename in glob.glob(searchPath):
         runNr = runFromFilename(filename)
@@ -145,7 +148,7 @@ def getInputHists(searchPath="/eos/cms/store/caf/user/dmeuser/PCL/condor_PCL_201
         print runNr
         path_in_file="DQMData/Run "+str(runNr)+"/AlCaReco/Run summary/SiPixelAli/"
         newHists = {}
-        if runNr<=318877:
+        if runNr<=318877:       # currently used for debugging, should be changed to true if all runs in search path should be considered
         #  ~if True:
             for p in parameters:
                 for structure in objects:
@@ -155,7 +158,8 @@ def getInputHists(searchPath="/eos/cms/store/caf/user/dmeuser/PCL/condor_PCL_201
                         newHists[histName] = h
             if newHists: hists[runNr] = newHists
     return sortedDict(hists)
-    
+
+# method to produce one histogram per variable and subdetector from multiple runs
 def getCombinedHist(inputHists, minRun=-1):
     inputHists = sortedDict(dict((key,value) for key, value in inputHists.iteritems() if key >= minRun))
     hists = {}
@@ -169,6 +173,7 @@ def getCombinedHist(inputHists, minRun=-1):
             isbpix = hname.find("Layer")!=-1
             islayer4 = hname.find("Layer4")!=-1
             
+            # this part defines the lower and upper limits of the histograms
             limit = 100
             limit_e = 30
             if isbpix==False and hname.find("Xrot")!=-1: 
@@ -198,7 +203,7 @@ def getCombinedHist(inputHists, minRun=-1):
                     hists[hname].Fill(c)
                     hists_e[hname].Fill(e)
                     hists_sig[hname].Fill(c/e if e>0 else 0)
-            else:
+            else:   # results in bpix are separated in outer and inner ladders
                 if hname+"_out" not in hists:
                     hists[hname+"_out"] = hdefault.Clone()
                     hists_e[hname+"_out"] = hdefault_e.Clone()
@@ -211,31 +216,27 @@ def getCombinedHist(inputHists, minRun=-1):
                     c = h.GetBinContent(bin)
                     e = h.GetBinError(bin)
                     i = 0
-                    if islayer4: i=1
+                    if islayer4: i=1    # numbering of inner and outer ladders in layer4 is inverted
                     if bin%2==i:
                         hists[hname+"_out"].Fill(c)
                         hists_e[hname+"_out"].Fill(e)
-                        hists_sig[hname+"_out"].Fill(c/e if e>0 else 0)
+                        hists_sig[hname+"_out"].Fill(c/e if e>0 else 0)     # avoid dividing by zero
                     else:
                         hists[hname+"_in"].Fill(c)
                         hists_e[hname+"_in"].Fill(e)
-                        hists_sig[hname+"_in"].Fill(c/e if e>0 else 0)
-    
-    #  ~hists["Xpos_HG_Layer1_out"].SaveAs("out1.root")
-    #  ~hists["Xpos_HG_Layer4_in"].SaveAs("in4.root")
-    #  ~hists["Xpos_HG_Layer3_out"].SaveAs("out3.root")
-    #  ~hists["Xpos_HG_Layer3_in"].SaveAs("in3.root")
+                        hists_sig[hname+"_in"].Fill(c/e if e>0 else 0)      # avoid dividing by zero
     return hists,hists_e,hists_sig
 
-def drawCombinedHists(hmaps):
-    for ih,hmap in enumerate(hmaps):
+# method to draw the combined histograms
+def drawCombinedHists(hmaps,plotDir):
+    for ih,hmap in enumerate(hmaps):    # ih loops over movement, error and significance hists
         objectDict = {}
         for structure in objects:
             objectDict[structure[0]] = structure[1]
         
         paramDict = {}
         parameters_temp = parameters
-        if ih==1 : parameters_temp=parameters_e
+        if ih==1 : parameters_temp=parameters_e     # get correct parameters
         elif ih==2 : parameters_temp=parameters_sig
         for param in parameters_temp:
             paramDict[param.name] = param
@@ -255,11 +256,11 @@ def drawCombinedHists(hmaps):
         c = ROOT.TCanvas(randomName(),"",700,600)
         hists = {}
         isbpix = False
-        for ig,(name,hist) in enumerate(hmap.iteritems()):
+        for ig,(name,hist) in enumerate(hmap.iteritems()):      # ig loops over the combination of different detector parts and variables
             print name
             isbpix = name.find("Layer")!=-1
-            structure = name.split("_")[2]
-            param = name.split("_")[0]
+            structure = name.split("_")[2]      # get structure from name (e.g. Layer1)
+            param = name.split("_")[0]      # get histogram type from name (e.g. movement)
             hist = mergeOverflow(hist,True)
             hists[ig] = hist.Clone()
             hists[ig].SetStats(0)
@@ -272,7 +273,7 @@ def drawCombinedHists(hmaps):
             hists[ig].Draw("hist")
             hists[ig].GetYaxis().SetTitleOffset(0.95)
             gStyle.SetHistTopMargin(0.)
-            if ih==0 or ih==2:
+            if ih==0 or ih==2:  # show different thresholds/veto lines depending on the histogram type
                 line.DrawLine(-paramDict[param].cut, 0, -paramDict[param].cut,hists[ig].GetMaximum())
                 line.DrawLine(+paramDict[param].cut, 0, +paramDict[param].cut,hists[ig].GetMaximum())
             if ih==0 or ih==1:
@@ -284,7 +285,7 @@ def drawCombinedHists(hmaps):
             text.DrawLatexNDC(.1, .91, "#scale[1.2]{#font[61]{CMS}} #font[52]{Private Work}")
             text.DrawLatexNDC(.6, .91, "2018 pp collisions")
             text.DrawLatexNDC(.59, .645, structure+name.split("_")[3] if isbpix else structure)
-            if ih!=1:
+            if ih!=1:       # show different percentages depending on the histogram type
                 text.DrawLatexNDC(.55, .445, "{:3.0f} % above update threshold".format(100*(hists[ig].Integral(0,hists[ig].GetXaxis().FindBin(-paramDict[param].cut)-1)+hists[ig].Integral(hists[ig].GetXaxis().FindBin(+paramDict[param].cut),hists[ig].GetNbinsX()+1))/hists[ig].GetEntries()))
             if (ih==0 and paramDict[param].veto<hists[ig].GetXaxis().GetXmax()):
                 text.DrawLatexNDC(.55, .345, "{:3.0f} % above veto threshold".format(100*(hists[ig].Integral(0,hists[ig].GetXaxis().FindBin(-paramDict[param].veto)-1)+hists[ig].Integral(hists[ig].GetXaxis().FindBin(+paramDict[param].veto),hists[ig].GetNbinsX()+1))/hists[ig].GetEntries()))
@@ -297,9 +298,22 @@ def drawCombinedHists(hmaps):
             leg.Clear()
 
 if __name__ == "__main__":
-    inputHists = getInputHists()
-    
-    combinedHists = getCombinedHist(inputHists)
+    #########Define the output directory#############
+    #  ~plotDir = "./plots/PR_starting_2018B_mid2018D"
+    plotDir = "./plots/PR_starting_2018B_diffHits/500Hits"
+    #  ~plotDir = "./plots/317182"
 
-    drawCombinedHists(combinedHists)
+    #########Define path of histograms###############
+    searchPath="/eos/cms/store/caf/user/dmeuser/PCL/condor_PCL_2018/2018B_PRstartingGeometry_iterativ_diffHits/500Hits/HG_run*/DQM*.root"
+    #  ~searchPath="/eos/cms/store/caf/user/dmeuser/PCL/condor_PCL_2018/2018B_PRstartingGeometry_iterativ_diffHits/50Hits/HG_run*/DQM*.root"
+    #  ~searchPath="/eos/cms/store/caf/user/dmeuser/PCL/condor_PCL_2018/output/HG_run*/DQM*.root"
+
+    # get input histograms from one DQM file per run
+    inputHists = getInputHists(searchPath)
+    
+    # prepare combined histograms from multiple runs
+    combinedHists = getCombinedHist(inputHists)
+    
+    # draw combined histograms
+    drawCombinedHists(combinedHists,plotDir)
 
