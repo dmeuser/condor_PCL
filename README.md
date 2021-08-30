@@ -60,7 +60,7 @@ voms-proxy-init --voms cms --valid 192:00
 ```
 In addition one has to make sure, that the output folder contains a valid db file named `payloads.db`(for LG) or `payloads_HG.db`(forHG), where the starting geometry is stored. A db file with the starting geometry using PromptReco can always be produced by (remember to adapt the run and to rename the db file):
 ```
-conddb_import -f frontier://FrontierProd/CMS_CONDITIONS -i TrackerAlignment_PCL_byRun_v2_express -c sqlite:file.db -b 317080 -e 317080 -t SiPixelAli_pcl
+conddb_import -f frontier://FrontierProd/CMS_CONDITIONS -i TrackerAlignment_PCL_byRun_v2_express -c sqlite:payloads_HG.db -b 317080 -e 317080 -t SiPixelAli_pcl
 ```
 After this the configs and submits can be prepared using:
 ```
