@@ -92,12 +92,16 @@ process.ALCARECOEventContent.outputCommands.extend(process.OutALCARECOPromptCali
 from Configuration.AlCa.GlobalTag import GlobalTag
 process.GlobalTag = GlobalTag(process.GlobalTag, '106X_dataRun3_Express_v2', '')
 
-# Use different Starting Geometry
+# Use different Starting Geometry and different Thresholds
 process.GlobalTag.toGet = cms.VPSet(
     cms.PSet(
         record = cms.string('TrackerAlignmentRcd'),
         tag = cms.string('SiPixelAli_pcl'),
-        connect = cms.string('sqlite_file:/eos/cms/store/caf/user/dmeuser/PCL/condor_PCL_2018/output/payloads_HG.db')))
+        connect = cms.string('sqlite_file:/eos/cms/store/caf/user/dmeuser/PCL/condor_PCL_2018/output/payloads_HG.db')),
+    cms.PSet(
+        record = cms.string('AlignPCLThresholdsRcd'),
+        tag = cms.string('PCLThresholds_express_v0'),
+        connect = cms.string('sqlite_file:/afs/cern.ch/user/d/dmeuser/alignment/PCL/hgPCL/CMSSW_11_1_0_pre3/src/CondFormats/PCLConfig/test/mythresholds_test.db')))
 
 # Path and EndPath definitions
 process.endjob_step = cms.EndPath(process.endOfProcess)
