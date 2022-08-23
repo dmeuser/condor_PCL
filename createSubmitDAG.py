@@ -246,8 +246,9 @@ data = collections.OrderedDict(sorted(data.items()))
 # define run range (different eras are usually run in different dag jobs)
 #Run2018B
 startingRun=317087
-#  ~stoppingRun=318877
-stoppingRun=317090
+#  ~startingRun=317088
+stoppingRun=318877
+#  ~stoppingRun=317090
 #Run2018C
 #  ~startingRun=319337
 #  ~stoppingRun=320065
@@ -287,6 +288,6 @@ writeDag_Trend("/afs/cern.ch/user/d/dmeuser/alignment/PCL/condor_PCL_2018/logs")
 #  ~writeDag_Trend("/afs/cern.ch/user/d/dmeuser/alignment/PCL/condor_PCL_2018/logs_LG")
 
 #Getting payload for UL: conddb_import -f frontier://FrontierProd/CMS_CONDITIONS -i TrackerAlignment_v28_offline -c sqlite:file.db -b 317626 -e 317626 -t SiPixelAli_pcl
-#Getting payload for PR: conddb_import -f frontier://FrontierProd/CMS_CONDITIONS -i TrackerAlignment_PCL_byRun_v2_express -c sqlite:file.db -b 317080 -e 317080 -t SiPixelAli_pcl
+#Getting payload for PR: conddb_import -f frontier://FrontierProd/CMS_CONDITIONS -i TrackerAlignment_PCL_byRun_v2_express -c sqlite:payloads_HG.db -b 317080 -e 317080 -t SiPixelAli_pcl
 
 #load t0 setting: module load lxbatch/tzero

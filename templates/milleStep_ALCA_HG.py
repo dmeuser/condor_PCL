@@ -101,7 +101,7 @@ process.GlobalTag.toGet = cms.VPSet(
     cms.PSet(
         record = cms.string('AlignPCLThresholdsRcd'),
         tag = cms.string('PCLThresholds_express_v0'),
-        connect = cms.string('sqlite_file:/afs/cern.ch/user/d/dmeuser/alignment/PCL/hgPCL/CMSSW_11_1_0_pre3/src/CondFormats/PCLConfig/test/mythresholds_test.db')))
+        connect = cms.string('sqlite_file:/afs/cern.ch/user/d/dmeuser/alignment/PCL/hgPCL/CMSSW_11_1_0_pre3/src/CondFormats/PCLConfig/test/mythresholds_HG.db')))
 
 # Path and EndPath definitions
 process.endjob_step = cms.EndPath(process.endOfProcess)
