@@ -51,8 +51,7 @@ def latexSlideTemplate_FPIX(direction,detector):
    return out
    
 
-#  ~def getLatexSlides(path="plots/PR_starting_2018B_mid2018D/"):
-def getLatexSlides(path="plots/PR_starting_2018B_diffHits/"):
+def getLatexSlides(path="plots/Rerun_2022/"):
    f = open(path+"out.tex","w+")
    
    for direction in ["Xpos","Ypos","Zpos","Xrot","Yrot","Zrot"]:

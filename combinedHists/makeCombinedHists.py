@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 
 import collections
 import glob
@@ -87,7 +87,7 @@ def runFromFilename(filename):
     if m:
         return int(m.group(1))
     else:
-        print "Could not find run number for file", filename
+        print("Could not find run number for file", filename)
         return 0
 
 # method to sort dictionary by key value
@@ -97,7 +97,7 @@ def sortedDict(d):
 # method to get root object from DQM file
 def getFromFile(filename, objectname):
     f = ROOT.TFile(filename)
-    if f.GetSize()<5000: # DQM files sometimes are empty
+    if f.GetSize()<50000: # DQM files sometimes are empty
         return None
     h = f.Get(objectname)
     h = ROOT.gROOT.CloneObject(h)
@@ -109,8 +109,8 @@ def randomName():
     different names to avoid overwriting.
     """
     from random import randint
-    from sys import maxint
-    return "%x"%(randint(0, maxint))
+    from sys import maxsize
+    return "%x"%(randint(0, maxsize))
 
 # method to merge overflow (and underflow) of a given histogram
 def mergeOverflow(h,includeUnderflow):
@@ -142,14 +142,15 @@ def mergeOverflow(h,includeUnderflow):
 # method to get histograms from list a given search path (returns multiple histograms per run)
 def getInputHists(searchPath):
     hists = {}
+    statusHists = {}
     for filename in glob.glob(searchPath):
         runNr = runFromFilename(filename)
         #  ~if runNr!=317182: continue
-        print runNr
-        path_in_file="DQMData/Run "+str(runNr)+"/AlCaReco/Run summary/SiPixelAli/"
+        print(runNr)
+        path_in_file="DQMData/Run "+str(runNr)+"/AlCaReco/Run summary/SiPixelAliHG/"
         newHists = {}
-        if runNr<=318877:       # currently used for debugging, should be changed to true if all runs in search path should be considered
-        #  ~if True:
+        #  ~if runNr<=355120:       # currently used for debugging, should be changed to true if all runs in search path should be considered
+        if True:
             for p in parameters:
                 for structure in objects:
                     histName=p.name+"_HG_"+structure[0]
@@ -157,19 +158,24 @@ def getInputHists(searchPath):
                     if h:
                         newHists[histName] = h
             if newHists: hists[runNr] = newHists
-    return sortedDict(hists)
+            
+            statusHists[runNr] = getFromFile(filename, path_in_file+"statusResults")
+            
+    return sortedDict(hists),sortedDict(statusHists)
 
 # method to produce one histogram per variable and subdetector from multiple runs
 def getCombinedHist(inputHists, minRun=-1):
-    inputHists = sortedDict(dict((key,value) for key, value in inputHists.iteritems() if key >= minRun))
+    inputHists = sortedDict(dict((key,value) for key, value in inputHists.items() if key >= minRun))
     hists = {}
     hists_e = {}
     hists_sig = {}
     isbpix = False
     islayer4 = False
-    for iRun, (runNr, hmap) in enumerate(inputHists.iteritems()):
-        print runNr
-        for hname, h in hmap.iteritems():
+    vetoeList = []
+    for iRun, (runNr, hmap) in enumerate(inputHists.items()):
+        print(runNr)
+        for hname, h in hmap.items():
+            
             isbpix = hname.find("Layer")!=-1
             islayer4 = hname.find("Layer4")!=-1
             
@@ -185,6 +191,14 @@ def getCombinedHist(inputHists, minRun=-1):
             elif hname.find("Yrot")!=-1: 
                 limit=1000
                 limit_e = 400
+            
+            #set overflow bin to zero (otherwise will be largest bin)
+            h.SetBinContent(h.GetMaximumBin(),0.)
+            
+            if((abs(h.GetBinContent(h.GetMaximumBin()))>h.GetBinContent(h.GetNbinsX()-1)) or (abs(h.GetBinContent(h.GetMinimumBin()))>h.GetBinContent(h.GetNbinsX()-1))):
+                print("Veto in ",hname,h.GetMaximumBin())
+                if runNr not in vetoeList:
+                    vetoeList.append(runNr)
             
             hdefault = ROOT.TH1F("",";Movement;Entries",100,-limit,limit)
             hdefault_e = ROOT.TH1F("",";Error;Entries",100,0,limit_e)
@@ -212,7 +226,7 @@ def getCombinedHist(inputHists, minRun=-1):
                     hists[hname+"_in"] = hdefault.Clone()
                     hists_e[hname+"_in"] = hdefault_e.Clone()
                     hists_sig[hname+"_in"] = hdefault_sig.Clone()
-                for bin in range(1,h.GetNbinsX()+1):
+                for bin in range(1,h.GetNbinsX()-4):    # Last bins store thresholds etc.
                     c = h.GetBinContent(bin)
                     e = h.GetBinError(bin)
                     i = 0
@@ -225,8 +239,42 @@ def getCombinedHist(inputHists, minRun=-1):
                         hists[hname+"_in"].Fill(c)
                         hists_e[hname+"_in"].Fill(e)
                         hists_sig[hname+"_in"].Fill(c/e if e>0 else 0)      # avoid dividing by zero
-    return hists,hists_e,hists_sig
-
+    return [hists,hists_e,hists_sig],vetoeList
+    
+# method to get combined status hist
+def getCombinedStatus(statusHist, vetoeList, minRun=-1):
+    statusHist = sortedDict(dict((key,value) for key, value in statusHist.items() if key >= minRun))
+    combinedStatus = ROOT.gROOT.CloneObject(list(statusHist.values())[0])
+    combinedStatus.Reset()
+    combinedStatus_singleTrigger = ROOT.gROOT.CloneObject(combinedStatus)
+    totalUpates = 0;
+    
+    for iRun, (runNr, hmap) in enumerate(statusHist.items()):   # add status histograms of all runs
+        updateTriggered = False
+        nTriggered = 0
+        #  ~if runNr in [355100,355127,357268,357271,357698,357759]
+        if(hmap):
+            for i in range(1,hmap.GetNbinsX()+1):
+                for j in range(1,hmap.GetNbinsY()+1):
+                    if (hmap.GetBinContent(i,j)>0):
+                        updateTriggered = True
+                        nTriggered += 1
+            
+            if updateTriggered and runNr in vetoeList:
+                print("Veto ",runNr)
+                continue
+            
+            combinedStatus.Add(hmap)
+            if(nTriggered == 1):
+                combinedStatus_singleTrigger.Add(hmap)
+            if(updateTriggered):
+                totalUpates+=1
+    
+    combinedStatus_unscaled = ROOT.gROOT.CloneObject(combinedStatus)
+    combinedStatus.Scale(1./totalUpates)    # scale by total number of updates
+    return combinedStatus,combinedStatus_unscaled,combinedStatus_singleTrigger
+            
+            
 # method to draw the combined histograms
 def drawCombinedHists(hmaps,plotDir):
     for ih,hmap in enumerate(hmaps):    # ih loops over movement, error and significance hists
@@ -256,8 +304,8 @@ def drawCombinedHists(hmaps,plotDir):
         c = ROOT.TCanvas(randomName(),"",700,600)
         hists = {}
         isbpix = False
-        for ig,(name,hist) in enumerate(hmap.iteritems()):      # ig loops over the combination of different detector parts and variables
-            print name
+        for ig,(name,hist) in enumerate(hmap.items()):      # ig loops over the combination of different detector parts and variables
+            print(name)
             isbpix = name.find("Layer")!=-1
             structure = name.split("_")[2]      # get structure from name (e.g. Layer1)
             param = name.split("_")[0]      # get histogram type from name (e.g. movement)
@@ -283,7 +331,7 @@ def drawCombinedHists(hmaps,plotDir):
             text = ROOT.TLatex()
             text.SetTextSize(0.04)
             text.DrawLatexNDC(.1, .91, "#scale[1.2]{#font[61]{CMS}} #font[52]{Private Work}")
-            text.DrawLatexNDC(.6, .91, "2018 pp collisions")
+            text.DrawLatexNDC(.6, .91, "2022 pp collisions")
             text.DrawLatexNDC(.59, .645, structure+name.split("_")[3] if isbpix else structure)
             if ih!=1:       # show different percentages depending on the histogram type
                 text.DrawLatexNDC(.55, .445, "{:3.0f} % above update threshold".format(100*(hists[ig].Integral(0,hists[ig].GetXaxis().FindBin(-paramDict[param].cut)-1)+hists[ig].Integral(hists[ig].GetXaxis().FindBin(+paramDict[param].cut),hists[ig].GetNbinsX()+1))/hists[ig].GetEntries()))
@@ -297,23 +345,41 @@ def drawCombinedHists(hmaps,plotDir):
             c.Clear()
             leg.Clear()
 
+# method to draw the combined histograms
+def drawCombinedStatus(combinedStatus,plotDir,saveName,zTitle):
+    gROOT.SetBatch(True)
+    c = ROOT.TCanvas(randomName(),"",800,600)
+    gPad.SetLeftMargin(0.15)
+    gPad.SetRightMargin(0.15)
+    combinedStatus.SetStats(0)
+    combinedStatus.GetZaxis().SetTitle(zTitle)
+    combinedStatus.Draw("colz text")
+    save(saveName, plotDir, endings=[".pdf",".root"])
+    
+
 if __name__ == "__main__":
     #########Define the output directory#############
-    #  ~plotDir = "./plots/PR_starting_2018B_mid2018D"
-    plotDir = "./plots/PR_starting_2018B_diffHits/500Hits"
-    #  ~plotDir = "./plots/317182"
+    plotDir = "./plots/Rerun_2022_vetoesApplies"
 
     #########Define path of histograms###############
-    searchPath="/eos/cms/store/caf/user/dmeuser/PCL/condor_PCL_2018/2018B_PRstartingGeometry_iterativ_diffHits/500Hits/HG_run*/DQM*.root"
-    #  ~searchPath="/eos/cms/store/caf/user/dmeuser/PCL/condor_PCL_2018/2018B_PRstartingGeometry_iterativ_diffHits/50Hits/HG_run*/DQM*.root"
-    #  ~searchPath="/eos/cms/store/caf/user/dmeuser/PCL/condor_PCL_2018/output/HG_run*/DQM*.root"
-
+    searchPath="/eos/cms/store/caf/user/dmeuser/PCL/condor_PCL_2022/output/HG_run*/DQM*.root"
+    #  ~searchPath="/eos/cms/store/caf/user/dmeuser/PCL/condor_PCL_2022/Rerun_2022B_2022D/HG_run*/DQM*.root"
+    
     # get input histograms from one DQM file per run
-    inputHists = getInputHists(searchPath)
+    inputHists,statusHists = getInputHists(searchPath)
     
     # prepare combined histograms from multiple runs
-    combinedHists = getCombinedHist(inputHists)
+    combinedHists,vetoeList = getCombinedHist(inputHists)
+    
+    print(vetoeList)
+    
+    # prepare combined status hist from multiple runs
+    combinedStatus,combinedStatus_unscaled,combinedStatus_singleTrigger = getCombinedStatus(statusHists,vetoeList)
     
     # draw combined histograms
     drawCombinedHists(combinedHists,plotDir)
-
+    
+    # draw combined status
+    drawCombinedStatus(combinedStatus,plotDir,"combinedStatus","Included in x% of the updates")
+    drawCombinedStatus(combinedStatus_unscaled,plotDir,"combinedStatus_unscaled","Number of updates triggered")
+    drawCombinedStatus(combinedStatus_singleTrigger,plotDir,"combinedStatus_singleTrigger","Number of single triggered updates")
