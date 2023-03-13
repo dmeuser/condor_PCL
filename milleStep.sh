@@ -6,7 +6,7 @@ HG_bool=$2
 Start_Lumi=$3
 
 # source CMSSW (has to be changed for different user)
-cmsswDir=/afs/cern.ch/user/d/dmeuser/alignment/PCL/hgPCL/CMSSW_11_1_0_pre3/src
+cmsswDir=/afs/cern.ch/user/d/dmeuser/alignment/PCL/condor_PCL_2022/CMSSW_12_4_9/src
 cd $cmsswDir
 eval `scramv1 runtime -sh`
 
@@ -14,14 +14,14 @@ eval `scramv1 runtime -sh`
 export HOME=/afs/cern.ch/user/d/dmeuser
 
 # set base directory (has to be changed for different user)
-baseDir=/afs/cern.ch/user/d/dmeuser/alignment/PCL/condor_PCL_2018
+baseDir=/afs/cern.ch/user/d/dmeuser/alignment/PCL/condor_PCL_2022/condor_PCL
 cd $baseDir
 
 # set path to CAF (has to be changed for different user)
-cafPath=/eos/cms/store/caf/user/dmeuser/PCL/condor_PCL_2018/output
+cafPath=/eos/cms/store/caf/user/dmeuser/PCL/condor_PCL_2022/output
 
 # set path to working space (has to be changed for different user)
-workPath=/afs/cern.ch/work/d/dmeuser/alignment/PCL/condor_PCL_2018/run_directories
+workPath=/afs/cern.ch/work/d/dmeuser/alignment/PCL/condor_PCL_2022/run_directories
 
 # check if running HG or LG
 if [ $HG_bool -eq 1 ]
@@ -58,8 +58,10 @@ mv $runDir/* $outputDir
 
 # rename and move mille step output to be able to use it in the pede step
 cd $outputDir
-mv PromptCalibProdSiPixelAli.root PromptCalibProdSiPixelAli_$Start_Lumi.root
-cp PromptCalibProdSiPixelAli_$Start_Lumi.root ../
+# ~mv PromptCalibProdSiPixelAli.root PromptCalibProdSiPixelAli_$Start_Lumi.root
+# ~cp PromptCalibProdSiPixelAli_$Start_Lumi.root ../
+mv PromptCalibProdSiPixelAliHG.root PromptCalibProdSiPixelAliHG_$Start_Lumi.root
+cp PromptCalibProdSiPixelAliHG_$Start_Lumi.root ../
 
 # go back to base directory
 cd $baseDir

@@ -8,9 +8,9 @@ import json
 import collections
 
 # define workspace, base directory and output directory (has to be changed for different user)
-workPath="/afs/cern.ch/work/d/dmeuser/alignment/PCL/condor_PCL_2018/run_directories"
-basePath="/afs/cern.ch/user/d/dmeuser/alignment/PCL/condor_PCL_2018"
-outputPath="/eos/cms/store/caf/user/dmeuser/PCL/condor_PCL_2018/output"
+workPath="/afs/cern.ch/work/d/dmeuser/alignment/PCL/condor_PCL_2022/run_directories"
+basePath="/afs/cern.ch/user/d/dmeuser/alignment/PCL/condor_PCL_2022/condor_PCL"
+outputPath="/eos/cms/store/caf/user/dmeuser/PCL/condor_PCL_2022/output"
 
 # method to merge two dictionaries (mostly used when adding lowPU runs into nominal range)
 def merge_two_dicts(x, y):
@@ -18,17 +18,25 @@ def merge_two_dicts(x, y):
     z.update(y)    # modifies z with y's keys and values & returns None
     return z
 
-# method to retrieve file list for given run in the form of {lumiNo: "file1, file2"} (currently only defined for 2018BCD)
+# method to retrieve file list for given run in the form of {lumiNo: "file1, file2"}
 def getFileList_run(run):
     run=int(run)
-    if run<317080 or run>325175:    # check which run era has to be used
+    #  ~if run<355094 or run>357815:    # check which run era has to be used
+        #  ~print "Dataset to run "+run+" not defined"
+    #  ~elif run<=355769:
+        #  ~output=subprocess.check_output(["dasgoclient -query='lumi,file dataset=/StreamExpress/Run2022B-TkAlMinBias-Express-v1/ALCARECO run={}'".format(run)], shell=True)
+    #  ~elif run<=357482:
+        #  ~output=subprocess.check_output(["dasgoclient -query='lumi,file dataset=/StreamExpress/Run2022C-TkAlMinBias-Express-v1/ALCARECO run={}'".format(run)], shell=True)
+    #  ~elif run<=357815:
+        #  ~output=subprocess.check_output(["dasgoclient -query='lumi,file dataset=/StreamExpress/Run2022D-TkAlMinBias-Express-v1/ALCARECO run={}'".format(run)], shell=True)
+    if run<357710 or run>357900:    # check which run era has to be used
         print "Dataset to run "+run+" not defined"
-    elif run<=319311:
-        output=subprocess.check_output(["dasgoclient -query='lumi,file dataset=/StreamExpress/Run2018B-TkAlMinBias-Express-v1/ALCARECO run={}'".format(run)], shell=True)
-    elif run<=320393:
-        output=subprocess.check_output(["dasgoclient -query='lumi,file dataset=/StreamExpress/Run2018C-TkAlMinBias-Express-v1/ALCARECO run={}'".format(run)], shell=True)
-    elif run<=325175:
-        output=subprocess.check_output(["dasgoclient -query='lumi,file dataset=/StreamExpress/Run2018D-TkAlMinBias-Express-v1/ALCARECO run={}'".format(run)], shell=True)
+    elif run<=357733:
+        output=subprocess.check_output(["dasgoclient -query='lumi,file dataset=/HLTPhysics/Run2022D-TkAlMinBias-PromptReco-v1/ALCARECO run={}'".format(run)], shell=True)
+    elif run<=358219:
+        output=subprocess.check_output(["dasgoclient -query='lumi,file dataset=/HLTPhysics/Run2022D-TkAlMinBias-PromptReco-v2/ALCARECO run={}'".format(run)], shell=True)
+    elif run<=357900:
+        output=subprocess.check_output(["dasgoclient -query='lumi,file dataset=/HLTPhysics/Run2022D-TkAlMinBias-PromptReco-v3/ALCARECO run={}'".format(run)], shell=True)
     fileDict={}
     for line in output.split("\n"):     #create dictionary to save filenames per lumi (each line corresponds to one file)
         if len(line.split("["))==2 :
@@ -141,7 +149,7 @@ Arguments  = {0} {1}
 Log        = {2}/log_pede.log
 Output     = {2}/out_pede.out
 Error      = {2}/error_pede.error
-+JobFlavour = "microcentury"
++JobFlavour = "workday"
 +AccountingGroup = "group_u_CMS.CAF.ALCA"
 Queue
 """.format(run,HG_bool,dirname))
@@ -224,41 +232,52 @@ def submitRun(run,HG_bool,LumisMax,LumisPerJob,StartLumi,SingleRun=True):
         print "Not enough LumiSections"
         return False
 
+def submitRunTotal(run,HG_bool,LumisPerJob):
+    print "Submitting run",run
+    fileDict=getFileList_run(run)    
+    
+    submittedLumis = []; 
+    
+    if bool(fileDict):
+        for lumi in fileDict:
+            if lumi in submittedLumis:
+                continue        
+            cleanOutputFolder(run,HG_bool,True)     # clean output folder in case some run before fails
+            
+            dirname_log=createLogFolder(run,lumi,HG_bool)
+            dirname_run=createRunFolder(run,lumi,HG_bool)
+            fileList=getFileList_job(fileDict,lumi,LumisPerJob)
+            
+            for nextLumi in range(lumi,lumi+LumisPerJob):
+                if nextLumi in fileDict:
+                    submittedLumis.append(nextLumi)
+            
+            writeMilleConfig(run,HG_bool,lumi,LumisPerJob,fileList,dirname_run)
+            writeMilleSubmit(run,HG_bool,lumi,fileList,dirname_log)
+        
+        dirname_totalRun=os.path.dirname(dirname_log)
+        writePedeSubmit(run,HG_bool,dirname_totalRun)       # write pede submit (not config needed since cmsDriver.py is used in pedeStep.sh)
+    else:
+        print "Lumi list empty"
+
 print "!!!!!!Check if correct SG is loaded in the beginning and if study can be iterative (payloads already in output folder)!!!!!!!!"
 
-#########################2018B long range with template update#################################
 # set jsons for nominal and lowPU runs
-url = "https://test-eos-cms-service-dqm.web.cern.ch/test-eos-cms-service-dqm/CAF/certification/Collisions18/13TeV/DCSOnly/json_DCSONLY.txt"
-url_lowPU = "https://test-eos-cms-service-dqm.web.cern.ch/test-eos-cms-service-dqm/CAF/certification/Collisions18/13TeV/PromptReco/Cert_318939-319488_13TeV_PromptReco_SpecialCollisions18_JSON_LOWPU.txt"
+#  ~url = "https://test-eos-cms-service-dqm.web.cern.ch/test-eos-cms-service-dqm/CAF/certification/Collisions22/DCSOnly_JSONS/Cert_Collisions2022_355100_357815_13p6TeV_DCSOnly_TkPx.json"
+url = "https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions22/DCSOnly_JSONS/Cert_Collisions2022_355100_357900_13p6TeV_DCSOnly_TkPx.json"
 
 # open url
 response = urllib.urlopen(url)
-response_lowPU = urllib.urlopen(url_lowPU)
 
 # read json (and merge with lowPU)
 data = json.loads(response.read())
-data_lowPU = json.loads(response_lowPU.read())
-#  ~data = merge_two_dicts(data,data_lowPU)
 
 # get ordered dictionary with {run:"lumiRange1, lumiRange2"}
 data = collections.OrderedDict(sorted(data.items()))
 
 # define run range (different eras are usually run in different dag jobs)
-#Run2018B
-startingRun=317087
-#  ~startingRun=317088
-stoppingRun=318877
-#  ~stoppingRun=317090
-#Run2018C
-#  ~startingRun=319337
-#  ~stoppingRun=320065
-#Run2018D partly
-#  ~startingRun=320500
-#  ~stoppingRun=321177
-
-#Across Run2018B and Run2018C (used for lowPU included study)
-#  ~startingRun=317626
-#  ~stoppingRun=319699
+startingRun=357710
+stoppingRun=357900
 
 # set helper variables
 longestRange=0
@@ -268,6 +287,8 @@ startLongestRange=0
 # define the number of lumi sections to be used per run
 numberOfLS=100
 
+# Run with max 100 LS
+'''
 # loop over each run in the selected range
 for run in data:
     if int(run)>=startingRun and int(run)<stoppingRun:
@@ -282,12 +303,15 @@ for run in data:
             submitRun(run,1,numberOfLS,5,startLongestRange,False)   #prepare HG with 5 lumis per mille job
         longestRange=0      # set variables to zero for next run
         totalLS=0
+'''
+
+for run in data:
+    if int(run)>=startingRun and int(run)<=stoppingRun:
+        submitRunTotal(run,1,5)
 
 # write dag submits for trends
-writeDag_Trend("/afs/cern.ch/user/d/dmeuser/alignment/PCL/condor_PCL_2018/logs")
-#  ~writeDag_Trend("/afs/cern.ch/user/d/dmeuser/alignment/PCL/condor_PCL_2018/logs_LG")
+writeDag_Trend("/afs/cern.ch/user/d/dmeuser/alignment/PCL/condor_PCL_2022/condor_PCL/logs")
 
-#Getting payload for UL: conddb_import -f frontier://FrontierProd/CMS_CONDITIONS -i TrackerAlignment_v28_offline -c sqlite:file.db -b 317626 -e 317626 -t SiPixelAli_pcl
-#Getting payload for PR: conddb_import -f frontier://FrontierProd/CMS_CONDITIONS -i TrackerAlignment_PCL_byRun_v2_express -c sqlite:payloads_HG.db -b 317080 -e 317080 -t SiPixelAli_pcl
+#Getting payload for PR:conddb_import -f frontier://FrontierProd/CMS_CONDITIONS -i TrackerAlignment_PCL_byRun_v2_express -c sqlite:payloads_HG.db -b 355094 -e 355101 -t SiPixelAliHG_pcl
 
 #load t0 setting: module load lxbatch/tzero
