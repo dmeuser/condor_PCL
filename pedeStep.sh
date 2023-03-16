@@ -38,7 +38,7 @@ else
     ls PromptCalibProdSiPixelAli_*.root | sed 's/Prompt/file:Prompt/g' > AlcaFiles.txt
     
     # run pede step using alignment from previous run (stored in payloads_HG.db)
-    cmsDriver.py pedeStep --data --conditions 124X_dataRun3_Express_v5 --scenario pp -s ALCAHARVEST:SiPixelAli --filein filelist:AlcaFiles.txt --customise_commands "process.GlobalTag.toGet = cms.VPSet(cms.PSet(record = cms.string('AlignPCLThresholdsHGRcd'),tag = cms.string('PCLThresholds_express_v0'),connect = cms.string('sqlite_file:$cmsswDir/CondFormats/PCLConfig/test/mythresholds.db')),cms.PSet(record = cms.string('TrackerAlignmentRcd'),tag = cms.string('SiPixelAli_pcl'),connect = cms.string('sqlite_file:$cafPath/payloads.db')))"
+    cmsDriver.py pedeStep --data --conditions 124X_dataRun3_Express_v5 --scenario pp -s ALCAHARVEST:SiPixelAli --filein filelist:AlcaFiles.txt --customise_commands "process.GlobalTag.toGet = cms.VPSet(cms.PSet(record = cms.string('AlignPCLThresholdsHGRcd'),tag = cms.string('PCLThresholds_express_v0'),connect = cms.string('sqlite_file:$cmsswDir/CondFormats/PCLConfig/test/mythresholds_HG.db')),cms.PSet(record = cms.string('TrackerAlignmentRcd'),tag = cms.string('SiPixelAli_pcl'),connect = cms.string('sqlite_file:$cafPath/payloads.db')))"
     
     # import new alignment to db file
     conddb_import -f sqlite:promptCalibConditions.db -c sqlite:../payloads.db -i SiPixelAli_pcl || echo "no Update produced"
