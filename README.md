@@ -3,18 +3,29 @@
 This code can be used to perform studies regarding the high granularity (HG) PCL alignment. The main function is to setup the config and condor submission script for running the PCL alignment with the nominal (low granularity) and the new configuration (high granularity). Once setup the jobs can be used in a dagman job to run the alignment for multiple runs iteratively, which in a way mimics the setup used during data taking.
 
 ### Installation/Requirements
-Run the following lines to setup CMSSW_11_1_0_pre3 and merge the private branch for the HG PCL:
+Run the following lines to setup CMSSW_12_4_9 and add the package containing the threshold config:
 ```
-cmsrel CMSSW_11_1_0_pre3
-cd CMSSW_11_1_0_pre3/src/
+cmsrel CMSSW_12_4_9
+cd CMSSW_12_4_9/src/
 cmsenv
 git cms-init
-git cms-merge-topic dmeuser:hgPCL
+git cms-addpkg CondFormats/PCLConfig
 scram b -j7
 ```
 To setup the code of this repository first of all clone it using:
 ```
-git clone https://github.com/dmeuser/condor_PCL_2018.git
+git clone https://github.com/dmeuser/condor_PCL.git
+```
+To run the alignment payloads containing the PCL alignment thresholds are needed. In this setup the payload is required to be stored in `$CMSSW_BASE/CondFormats/PCLConfig/test/mythresholds_HG.db`. To get the payload one can either import the payload from conddb (proxy is required, see details below):
+```
+cd $CMSSW_BASE/CondFormats/PCLConfig/test
+conddb_import -f frontier://FrontierProd/CMS_CONDITIONS -i SiPixelAliThresholds_express_v0 -c sqlite:mythresholds_HG.db -t PCLThresholds_express_v0
+```
+or produce the payload by running the following steps (config is taken from current repository, but can also be adapted to use individual thresholds)
+```
+cp ThresholdsHG_cff.py $CMSSW_BASE/CondFormats/PCLConfig/python/
+cd $CMSSW_BASE/CondFormats/PCLConfig/test
+cmsRun AlignPCLThresholdsWriter_cfg.py
 ```
 There are some files in the code where the paths have to be changed when a different user is running the scripts. These parts are indicated by comments and are present in the following files:
 ```
@@ -35,7 +46,6 @@ Thus, in the files mentioned above the path to the home directory, the run direc
 ### Code
 * `createSubmitDAG.py`: Main script which prepares all necessary configs and submit scripts for the studies. Run ranges, HG/LG option etc. are defined in the lower part of the script. The script can only be executed with active proxy since the `dasgoclient` is used to find the proper input files for a given run. The scripts runs roughly the following steps
     * Dictionary of `{run:[lumiRange1,lumiRange2]}` is created using an input json
-    * The longest lumi range is defined and used to setup the following configs
     * Log and run folders and the condor submits are prepared for each mille job (e.g. 20 mille jobs when using 100LS and 5LS per job) and for the final pede job (repeated for each run of the study)
     * `milleStep_ALCA(_HG).py` is setup based on the templates in `templates/` by defining the input files as well as the lumi
     * The config for the dagman job is produced looping over the mille and pede submitting script prepared before
@@ -66,7 +76,7 @@ Here, `/d/dmeuser/` has to be replaced by your personal path and the `proxy` fol
 
 In addition one has to make sure, that the output folder contains a valid db file named `payloads.db`(for LG) or `payloads_HG.db`(forHG), where the starting geometry is stored. A db file with the starting geometry using PromptReco can always be produced by (remember to adapt the run and to rename the db file):
 ```
-conddb_import -f frontier://FrontierProd/CMS_CONDITIONS -i TrackerAlignment_PCL_byRun_v2_express -c sqlite:payloads_HG.db -b 317080 -e 317080 -t SiPixelAli_pcl
+conddb_import -f frontier://FrontierProd/CMS_CONDITIONS -i TrackerAlignment_PCL_byRun_v2_express -c sqlite:payloads(_HG).db -b <BeginRun> -e <EndRun> -t SiPixelAli(HG)_pcl
 ```
 After this the configs and submits can be prepared using:
 ```
