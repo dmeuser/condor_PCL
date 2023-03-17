@@ -54,7 +54,7 @@ def createLogFolder(run,lumi,HG_bool):
     if HG_bool:
         dirname=basePath+"/logs/HG_run"+str(run)+"/lumi_"+str(lumi)
     else :
-        dirname=basePath+"/logs_LG/run"+str(run)+"/lumi_"+str(lumi)
+        dirname=basePath+"/logs/run"+str(run)+"/lumi_"+str(lumi)
         
     if not os.path.exists(dirname):
         try:
@@ -262,9 +262,8 @@ def submitRunTotal(run,HG_bool,LumisPerJob):
 
 print "!!!!!!Check if correct SG is loaded in the beginning and if study can be iterative (payloads already in output folder)!!!!!!!!"
 
-# set jsons for nominal and lowPU runs
-#  ~url = "https://test-eos-cms-service-dqm.web.cern.ch/test-eos-cms-service-dqm/CAF/certification/Collisions22/DCSOnly_JSONS/Cert_Collisions2022_355100_357815_13p6TeV_DCSOnly_TkPx.json"
-url = "https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions22/DCSOnly_JSONS/Cert_Collisions2022_355100_357900_13p6TeV_DCSOnly_TkPx.json"
+# set json
+url = "https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions22/DCSOnly_JSONS/Cert_Collisions2022_355100_362760_eraBCDEFG_13p6TeV_DCSOnly_TkPx.json"
 
 # open url
 response = urllib.urlopen(url)
@@ -304,10 +303,11 @@ for run in data:
         longestRange=0      # set variables to zero for next run
         totalLS=0
 '''
-
+# Submit all runs with full LS (second argument of submitRunTotal defines LG or HG)
 for run in data:
     if int(run)>=startingRun and int(run)<=stoppingRun:
-        submitRunTotal(run,1,5)
+        #  ~submitRunTotal(run,1,5) #HG
+        #  ~submitRunTotal(run,0,5) #LG
 
 # write dag submits for trends
 writeDag_Trend("/afs/cern.ch/user/d/dmeuser/alignment/PCL/condor_PCL_2022/condor_PCL/logs")

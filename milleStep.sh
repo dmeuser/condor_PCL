@@ -46,7 +46,7 @@ else
     mkdir $outputDir -p
     
     # define running directory (should already exist due to running createSubmitDAG.py)
-    runDir=$workPaths/run$RunNo/lumi_$Start_Lumi
+    runDir=$workPath/run$RunNo/lumi_$Start_Lumi
     cd $runDir
     
     # run mille step in run directory (py script already produced in createSubmitDAG.py)
@@ -58,8 +58,8 @@ mv $runDir/* $outputDir
 
 # rename and move mille step output to be able to use it in the pede step
 cd $outputDir
-# ~mv PromptCalibProdSiPixelAli.root PromptCalibProdSiPixelAli_$Start_Lumi.root
-# ~cp PromptCalibProdSiPixelAli_$Start_Lumi.root ../
+mv PromptCalibProdSiPixelAli.root PromptCalibProdSiPixelAli_$Start_Lumi.root
+cp PromptCalibProdSiPixelAli_$Start_Lumi.root ../
 mv PromptCalibProdSiPixelAliHG.root PromptCalibProdSiPixelAliHG_$Start_Lumi.root
 cp PromptCalibProdSiPixelAliHG_$Start_Lumi.root ../
 
