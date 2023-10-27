@@ -5,16 +5,18 @@ This code can be used to perform studies regarding the high granularity (HG) PCL
 ### Installation/Requirements
 Run the following lines to setup CMSSW_12_4_9 and add the package containing the threshold config:
 ```
-cmsrel CMSSW_12_4_9
-cd CMSSW_12_4_9/src/
+cmsrel CMSSW_13_3_0_pre4
+cd CMSSW_13_3_0_pre4/src/
 cmsenv
 git cms-init
+git cms-merge-topic mmusich:devel_ZMuMuInHGPCL_from-CMSSW_13_3_0_pre4
 git cms-addpkg CondFormats/PCLConfig
 scram b -j7
+cmsenv
 ```
 To setup the code of this repository first of all clone it using:
 ```
-git clone https://github.com/dmeuser/condor_PCL.git
+git clone git@github.com:dmeuser/condor_PCL.git
 ```
 To run the alignment payloads containing the PCL alignment thresholds are needed. In this setup the payload is required to be stored in `$CMSSW_BASE/src/CondFormats/PCLConfig/test/mythresholds_HG.db`. To get the payload produce the payload by running the following steps (config is taken from current repository, but can also be adapted to use individual thresholds)
 ```
