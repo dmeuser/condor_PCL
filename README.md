@@ -16,15 +16,9 @@ To setup the code of this repository first of all clone it using:
 ```
 git clone https://github.com/dmeuser/condor_PCL.git
 ```
-To run the alignment payloads containing the PCL alignment thresholds are needed. In this setup the payload is required to be stored in `$CMSSW_BASE/CondFormats/PCLConfig/test/mythresholds_HG.db`. To get the payload one can either import the payload from conddb (proxy is required, see details below):
+To run the alignment payloads containing the PCL alignment thresholds are needed. In this setup the payload is required to be stored in `$CMSSW_BASE/src/CondFormats/PCLConfig/test/mythresholds_HG.db`. To get the payload produce the payload by running the following steps (config is taken from current repository, but can also be adapted to use individual thresholds)
 ```
-cd $CMSSW_BASE/CondFormats/PCLConfig/test
-conddb_import -f frontier://FrontierProd/CMS_CONDITIONS -i SiPixelAliThresholds_express_v0 -c sqlite:mythresholds_HG.db -t PCLThresholds_express_v0
-```
-or produce the payload by running the following steps (config is taken from current repository, but can also be adapted to use individual thresholds)
-```
-cp ThresholdsHG_cff.py $CMSSW_BASE/CondFormats/PCLConfig/python/
-cd $CMSSW_BASE/CondFormats/PCLConfig/test
+cd $CMSSW_BASE/src/CondFormats/PCLConfig/test
 cmsRun AlignPCLThresholdsWriter_cfg.py
 ```
 There are some files in the code where the paths have to be changed when a different user is running the scripts. These parts are indicated by comments and are present in the following files:

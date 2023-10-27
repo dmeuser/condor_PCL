@@ -6,7 +6,7 @@ HG_bool=$2
 Start_Lumi=$3
 
 # source CMSSW (has to be changed for different user)
-cmsswDir=/afs/cern.ch/user/d/dmeuser/alignment/PCL/condor_PCL_2022/CMSSW_12_4_9/src
+cmsswDir=/afs/cern.ch/user/d/dmeuser/alignment/PCL/condor_PCL_2023/CMSSW_13_3_0_pre4/src
 cd $cmsswDir
 eval `scramv1 runtime -sh`
 
@@ -14,14 +14,14 @@ eval `scramv1 runtime -sh`
 export HOME=/afs/cern.ch/user/d/dmeuser
 
 # set base directory (has to be changed for different user)
-baseDir=/afs/cern.ch/user/d/dmeuser/alignment/PCL/condor_PCL_2022/condor_PCL
+baseDir=/afs/cern.ch/user/d/dmeuser/alignment/PCL/condor_PCL_2023/condor_PCL
 cd $baseDir
 
-# set path to CAF (has to be changed for different user)
-cafPath=/eos/cms/store/caf/user/dmeuser/PCL/condor_PCL_2022/output
+# set path to CAF (has to be changed for different user and created manually)
+cafPath=/eos/cms/store/caf/user/dmeuser/PCL/condor_PCL_2023/output
 
-# set path to working space (has to be changed for different user)
-workPath=/afs/cern.ch/work/d/dmeuser/alignment/PCL/condor_PCL_2022/run_directories
+# set path to working space (has to be changed for different user and created manually)
+workPath=/afs/cern.ch/work/d/dmeuser/alignment/PCL/condor_PCL_2023/run_directories
 
 # check if running HG or LG
 if [ $HG_bool -eq 1 ]

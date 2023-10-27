@@ -8,9 +8,9 @@ import json
 import collections
 
 # define workspace, base directory and output directory (has to be changed for different user)
-workPath="/afs/cern.ch/work/d/dmeuser/alignment/PCL/condor_PCL_2022/run_directories"
-basePath="/afs/cern.ch/user/d/dmeuser/alignment/PCL/condor_PCL_2022/condor_PCL"
-outputPath="/eos/cms/store/caf/user/dmeuser/PCL/condor_PCL_2022/output"
+workPath="/afs/cern.ch/work/d/dmeuser/alignment/PCL/condor_PCL_2023/run_directories"
+basePath="/afs/cern.ch/user/d/dmeuser/alignment/PCL/condor_PCL_2023/condor_PCL"
+outputPath="/eos/cms/store/caf/user/dmeuser/PCL/condor_PCL_2023/output"
 
 # method to merge two dictionaries (mostly used when adding lowPU runs into nominal range)
 def merge_two_dicts(x, y):
@@ -29,14 +29,14 @@ def getFileList_run(run):
         #  ~output=subprocess.check_output(["dasgoclient -query='lumi,file dataset=/StreamExpress/Run2022C-TkAlMinBias-Express-v1/ALCARECO run={}'".format(run)], shell=True)
     #  ~elif run<=357815:
         #  ~output=subprocess.check_output(["dasgoclient -query='lumi,file dataset=/StreamExpress/Run2022D-TkAlMinBias-Express-v1/ALCARECO run={}'".format(run)], shell=True)
-    if run<357710 or run>357900:    # check which run era has to be used
+    if run<370300 or run>370300:    # check which run era has to be used
         print "Dataset to run "+run+" not defined"
-    elif run<=357733:
-        output=subprocess.check_output(["dasgoclient -query='lumi,file dataset=/HLTPhysics/Run2022D-TkAlMinBias-PromptReco-v1/ALCARECO run={}'".format(run)], shell=True)
-    elif run<=358219:
-        output=subprocess.check_output(["dasgoclient -query='lumi,file dataset=/HLTPhysics/Run2022D-TkAlMinBias-PromptReco-v2/ALCARECO run={}'".format(run)], shell=True)
-    elif run<=357900:
-        output=subprocess.check_output(["dasgoclient -query='lumi,file dataset=/HLTPhysics/Run2022D-TkAlMinBias-PromptReco-v3/ALCARECO run={}'".format(run)], shell=True)
+    elif run<=370300:
+        output=subprocess.check_output(["dasgoclient -query='lumi,file dataset=/HLTPhysics/Run2023D-TkAlMinBias-PromptReco-v1/ALCARECO run={}'".format(run)], shell=True)
+    #  ~elif run<=358219:
+        #  ~output=subprocess.check_output(["dasgoclient -query='lumi,file dataset=/HLTPhysics/Run2022D-TkAlMinBias-PromptReco-v2/ALCARECO run={}'".format(run)], shell=True)
+    #  ~elif run<=357900:
+        #  ~output=subprocess.check_output(["dasgoclient -query='lumi,file dataset=/HLTPhysics/Run2022D-TkAlMinBias-PromptReco-v3/ALCARECO run={}'".format(run)], shell=True)
     fileDict={}
     for line in output.split("\n"):     #create dictionary to save filenames per lumi (each line corresponds to one file)
         if len(line.split("["))==2 :
@@ -263,7 +263,7 @@ def submitRunTotal(run,HG_bool,LumisPerJob):
 print "!!!!!!Check if correct SG is loaded in the beginning and if study can be iterative (payloads already in output folder)!!!!!!!!"
 
 # set json
-url = "https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions22/DCSOnly_JSONS/Cert_Collisions2022_355100_362760_eraBCDEFG_13p6TeV_DCSOnly_TkPx.json"
+url = "https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions23/DCSOnly_JSONS/Collisions23_13p6TeV_eraBCD_366403_370790_DCSOnly_TkPx.json"
 
 # open url
 response = urllib.urlopen(url)
@@ -275,8 +275,8 @@ data = json.loads(response.read())
 data = collections.OrderedDict(sorted(data.items()))
 
 # define run range (different eras are usually run in different dag jobs)
-startingRun=357710
-stoppingRun=357900
+startingRun=370300
+stoppingRun=370300
 
 # set helper variables
 longestRange=0
@@ -287,10 +287,10 @@ startLongestRange=0
 numberOfLS=100
 
 # Run with max 100 LS
-'''
+
 # loop over each run in the selected range
 for run in data:
-    if int(run)>=startingRun and int(run)<stoppingRun:
+    if int(run)>=startingRun and int(run)<=stoppingRun:
         for lsRange in data[run]:   # loop to find the longest range of lumis and store its length
             if lsRange[1]-lsRange[0]>longestRange: 
                 longestRange=lsRange[1]-lsRange[0]
@@ -302,15 +302,16 @@ for run in data:
             submitRun(run,1,numberOfLS,5,startLongestRange,False)   #prepare HG with 5 lumis per mille job
         longestRange=0      # set variables to zero for next run
         totalLS=0
-'''
+        
 # Submit all runs with full LS (second argument of submitRunTotal defines LG or HG)
+'''
 for run in data:
     if int(run)>=startingRun and int(run)<=stoppingRun:
         #  ~submitRunTotal(run,1,5) #HG
         #  ~submitRunTotal(run,0,5) #LG
-
+'''
 # write dag submits for trends
-writeDag_Trend("/afs/cern.ch/user/d/dmeuser/alignment/PCL/condor_PCL_2022/condor_PCL/logs")
+writeDag_Trend("/afs/cern.ch/user/d/dmeuser/alignment/PCL/condor_PCL_2023/condor_PCL/logs")
 
 #Getting payload for PR:conddb_import -f frontier://FrontierProd/CMS_CONDITIONS -i TrackerAlignment_PCL_byRun_v2_express -c sqlite:payloads_HG.db -b 355094 -e 355101 -t SiPixelAliHG_pcl
 

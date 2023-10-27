@@ -2,7 +2,7 @@
 # using: 
 # Revision: 1.19 
 # Source: /local/reps/CMSSW/CMSSW/Configuration/Applications/python/ConfigBuilder.py,v 
-# with command line options: milleStep -s ALCA:PromptCalibProdSiPixelAliHG --conditions 124X_dataRun3_Express_v5 --datatier ALCARECO --eventcontent ALCARECO --triggerResultsProcess RECO --customise_commands process.MessageLogger.cerr.FwkReport.reportEvery = 1000 --processName=ReALCA -n -1 --no_exec
+# with command line options: milleStep -s ALCA:PromptCalibProdSiPixelAliHG --conditions 130X_dataRun3_Prompt_v2 --datatier ALCARECO --eventcontent ALCARECO --triggerResultsProcess RECO --customise_commands process.MessageLogger.cerr.FwkReport.reportEvery = 1000 --processName=ReALCA -n -1 --no_exec
 import FWCore.ParameterSet.Config as cms
 
 
@@ -33,10 +33,9 @@ process.source = cms.Source("PoolSource",
 )
 
 process.options = cms.untracked.PSet(
-    FailPath = cms.untracked.vstring(),
     IgnoreCompletely = cms.untracked.vstring(),
     Rethrow = cms.untracked.vstring(),
-    SkipEvent = cms.untracked.vstring(),
+    TryToContinue = cms.untracked.vstring(),
     accelerators = cms.untracked.vstring('*'),
     allowUnscheduled = cms.obsolete.untracked.bool,
     canDeleteEarly = cms.untracked.vstring(),
@@ -51,7 +50,10 @@ process.options = cms.untracked.PSet(
     ),
     fileMode = cms.untracked.string('FULLMERGE'),
     forceEventSetupCacheClearOnNewRun = cms.untracked.bool(False),
+    holdsReferencesToDeleteEarly = cms.untracked.VPSet(),
     makeTriggerResults = cms.obsolete.untracked.bool,
+    modulesToCallForTryToContinue = cms.untracked.vstring(),
+    modulesToIgnoreForDeleteEarly = cms.untracked.vstring(),
     numberOfConcurrentLuminosityBlocks = cms.untracked.uint32(1),
     numberOfConcurrentRuns = cms.untracked.uint32(1),
     numberOfStreams = cms.untracked.uint32(0),
@@ -92,30 +94,18 @@ process.ALCARECOStreamPromptCalibProdSiPixelAliHG = cms.OutputModule("PoolOutput
 # Other statements
 process.ALCARECOEventContent.outputCommands.extend(process.OutALCARECOPromptCalibProdSiPixelAliHG_noDrop.outputCommands)
 from Configuration.AlCa.GlobalTag import GlobalTag
-#  ~process.GlobalTag = GlobalTag(process.GlobalTag, '124X_dataRun3_Express_v5', '')
-process.GlobalTag = GlobalTag(process.GlobalTag, '124X_dataRun3_Prompt_v4', '')
-
+process.GlobalTag = GlobalTag(process.GlobalTag, '130X_dataRun3_Prompt_v2', '')
 # Use different Starting Geometry and different Thresholds
 process.GlobalTag.toGet = cms.VPSet(
     cms.PSet(
         record = cms.string('TrackerAlignmentRcd'),
         tag = cms.string('SiPixelAliHG_pcl'),
-        connect = cms.string('sqlite_file:/eos/cms/store/caf/user/dmeuser/PCL/condor_PCL_2022/output/payloads_HG.db')),
-    cms.PSet(
-        record = cms.string('TrackerAlignmentExtendedErrorRcd'),
-        tag = cms.string('TrackerAlignmentExtendedErrors_collisions22_v2_multiIOV'),
-        connect = cms.string('frontier://FrontierPrep/CMS_CONDITIONS')),
+        connect = cms.string('sqlite_file:/eos/cms/store/caf/user/dmeuser/PCL/condor_PCL_2023/output/payloads_HG.db')),
     cms.PSet(
         record = cms.string('AlignPCLThresholdsHGRcd'),
         tag = cms.string('PCLThresholds_express_v0'),
-        connect = cms.string('sqlite_file:/afs/cern.ch/user/d/dmeuser/alignment/PCL/condor_PCL_2022/CMSSW_12_4_9/src/CondFormats/PCLConfig/test/mythresholds_HG.db')),
-    cms.PSet(
-        record = cms.string('SiPixelTemplateDBObjectRcd'),
-        tag = cms.string('SiPixelTemplateDBObject_phase1_38T_2022_forAlignment_v2')),
-    cms.PSet(
-        record = cms.string('SiPixel2DTemplateDBObjectRcd'),
-        tag = cms.string('SiPixel2DTemplateDBObject_phase1_38T_2022_forAlignment_v2'),
-        label = cms.untracked.string('numerator')))
+        connect = cms.string('sqlite_file:/afs/cern.ch/user/d/dmeuser/alignment/PCL/condor_PCL_2023/CMSSW_13_3_0_pre4/src/CondFormats/PCLConfig/test/mythresholds_HG.db')),
+        )
 
 # Path and EndPath definitions
 process.endjob_step = cms.EndPath(process.endOfProcess)
