@@ -19,7 +19,7 @@ def merge_two_dicts(x, y):
     return z
 
 # method to retrieve file list for given run in the form of {lumiNo: "file1, file2"}
-def getFileList_run(run):
+def getFileList_run(run,Zmumu_bool=False):
     run=int(run)
     #  ~if run<355094 or run>357815:    # check which run era has to be used
         #  ~print "Dataset to run "+run+" not defined"
@@ -29,14 +29,38 @@ def getFileList_run(run):
         #  ~output=subprocess.check_output(["dasgoclient -query='lumi,file dataset=/StreamExpress/Run2022C-TkAlMinBias-Express-v1/ALCARECO run={}'".format(run)], shell=True)
     #  ~elif run<=357815:
         #  ~output=subprocess.check_output(["dasgoclient -query='lumi,file dataset=/StreamExpress/Run2022D-TkAlMinBias-Express-v1/ALCARECO run={}'".format(run)], shell=True)
-    if run<370300 or run>370300:    # check which run era has to be used
+    if run<366403 or run>370580:    # check which run era has to be used 
         print "Dataset to run "+run+" not defined"
-    elif run<=370300:
-        output=subprocess.check_output(["dasgoclient -query='lumi,file dataset=/HLTPhysics/Run2023D-TkAlMinBias-PromptReco-v1/ALCARECO run={}'".format(run)], shell=True)
-    #  ~elif run<=358219:
-        #  ~output=subprocess.check_output(["dasgoclient -query='lumi,file dataset=/HLTPhysics/Run2022D-TkAlMinBias-PromptReco-v2/ALCARECO run={}'".format(run)], shell=True)
-    #  ~elif run<=357900:
-        #  ~output=subprocess.check_output(["dasgoclient -query='lumi,file dataset=/HLTPhysics/Run2022D-TkAlMinBias-PromptReco-v3/ALCARECO run={}'".format(run)], shell=True)
+    elif run<=367079:
+        if Zmumu_bool:
+            output=subprocess.check_output(["dasgoclient -query='lumi,file dataset=/Muon0/Run2023B-TkAlZMuMu-PromptReco-v1/ALCARECO run={}'".format(run)], shell=True)
+        else:
+            output=subprocess.check_output(["dasgoclient -query='lumi,file dataset=/HLTPhysics/Run2023B-TkAlMinBias-PromptReco-v1/ALCARECO run={}'".format(run)], shell=True)
+    elif run<=367619:
+        if Zmumu_bool:
+            output=subprocess.check_output(["dasgoclient -query='lumi,file dataset=/Muon0/Run2023C-TkAlZMuMu-PromptReco-v1/ALCARECO run={}'".format(run)], shell=True)
+        else:
+            output=subprocess.check_output(["dasgoclient -query='lumi,file dataset=/HLTPhysics/Run2023C-TkAlMinBias-PromptReco-v1/ALCARECO run={}'".format(run)], shell=True)
+    elif run<=367840:
+        if Zmumu_bool:
+            output=subprocess.check_output(["dasgoclient -query='lumi,file dataset=/Muon0/Run2023C-TkAlZMuMu-PromptReco-v2/ALCARECO run={}'".format(run)], shell=True)
+        else:
+            output=subprocess.check_output(["dasgoclient -query='lumi,file dataset=/HLTPhysics/Run2023C-TkAlMinBias-PromptReco-v2/ALCARECO run={}'".format(run)], shell=True)
+    elif run<=369802:
+        if Zmumu_bool:
+            output=subprocess.check_output(["dasgoclient -query='lumi,file dataset=/Muon0/Run2023C-TkAlZMuMu-PromptReco-v4/ALCARECO run={}'".format(run)], shell=True)
+        else:
+            output=subprocess.check_output(["dasgoclient -query='lumi,file dataset=/HLTPhysics/Run2023C-TkAlMinBias-PromptReco-v4/ALCARECO run={}'".format(run)], shell=True)
+    elif run<=370580:
+        if Zmumu_bool:
+            output=subprocess.check_output(["dasgoclient -query='lumi,file dataset=/Muon0/Run2023D-TkAlZMuMu-PromptReco-v1/ALCARECO run={}'".format(run)], shell=True)
+        else:
+            output=subprocess.check_output(["dasgoclient -query='lumi,file dataset=/HLTPhysics/Run2023D-TkAlMinBias-PromptReco-v1/ALCARECO run={}'".format(run)], shell=True)
+    elif run<=371227:
+        if Zmumu_bool:
+            output=subprocess.check_output(["dasgoclient -query='lumi,file dataset=/Muon0/Run2023D-TkAlZMuMu-PromptReco-v2/ALCARECO run={}'".format(run)], shell=True)
+        else:
+            output=subprocess.check_output(["dasgoclient -query='lumi,file dataset=/HLTPhysics/Run2023D-TkAlMinBias-PromptReco-v2/ALCARECO run={}'".format(run)], shell=True)
     fileDict={}
     for line in output.split("\n"):     #create dictionary to save filenames per lumi (each line corresponds to one file)
         if len(line.split("["))==2 :
@@ -50,9 +74,13 @@ def getFileList_run(run):
     return fileDict
     
 # method to create the log folder, returns path to log folder
-def createLogFolder(run,lumi,HG_bool):
+def createLogFolder(run,lumi,HG_bool,Zmumu_bool):
     if HG_bool:
-        dirname=basePath+"/logs/HG_run"+str(run)+"/lumi_"+str(lumi)
+        if Zmumu_bool:
+            dirname=basePath+"/logs/HG_Zmumu_run"+str(run)+"/lumi_"+str(lumi)
+            dirnameZmumu=basePath+"/logs/HG_Zmumu_run"+str(run)+"/lumi_Zmumu_"+str(lumi)    #require additional folder for Zmumu data (not only minBias)
+        else:
+            dirname=basePath+"/logs/HG_run"+str(run)+"/lumi_"+str(lumi)
     else :
         dirname=basePath+"/logs/run"+str(run)+"/lumi_"+str(lumi)
         
@@ -62,12 +90,25 @@ def createLogFolder(run,lumi,HG_bool):
         except OSError as exc: # Guard against race condition
             if exc.errno != errno.EEXIST:
                 raise
+    
+    if Zmumu_bool:
+        if not os.path.exists(dirnameZmumu):
+            try:
+                os.makedirs(dirnameZmumu)
+            except OSError as exc: # Guard against race condition
+                if exc.errno != errno.EEXIST:
+                    raise
+    
     return dirname
 
 # method to create the run folder, returns path to run folder
-def createRunFolder(run,lumi,HG_bool):
+def createRunFolder(run,lumi,HG_bool,Zmumu_bool):
     if HG_bool:
-        dirname=workPath+"/HG_run"+str(run)+"/lumi_"+str(lumi)
+        if Zmumu_bool:
+            dirname=workPath+"/HG_Zmumu_run"+str(run)+"/lumi_"+str(lumi)
+            dirnameZmumu=workPath+"/HG_Zmumu_run"+str(run)+"/lumi_Zmumu_"+str(lumi) #require additional folder for Zmumu data (not only minBias)
+        else:
+            dirname=workPath+"/HG_run"+str(run)+"/lumi_"+str(lumi)
     else :
         dirname=workPath+"/run"+str(run)+"/lumi_"+str(lumi)
         
@@ -77,12 +118,24 @@ def createRunFolder(run,lumi,HG_bool):
         except OSError as exc: # Guard against race condition
             if exc.errno != errno.EEXIST:
                 raise
+    
+    if Zmumu_bool:
+        if not os.path.exists(dirnameZmumu):
+            try:
+                os.makedirs(dirnameZmumu)
+            except OSError as exc: # Guard against race condition
+                if exc.errno != errno.EEXIST:
+                    raise
+    
     return dirname
 
 # method to clean output folder (useful in case job are failing)
-def cleanOutputFolder(run,HG_bool,complete):
+def cleanOutputFolder(run,HG_bool,Zmumu_bool,complete):
     if HG_bool:
-        dirname=outputPath+"/HG_run"+str(run)
+        if Zmumu_bool:
+            dirname=outputPath+"/HG_Zmumu_run"+str(run)
+        else:
+            dirname=outputPath+"/HG_run"+str(run)
     else :
         dirname=outputPath+"/run"+str(run)
     if os.path.exists(dirname):
@@ -105,9 +158,12 @@ def getFileList_job(fileDict,lumi,LumisPerJob):
     return fileList
     
 # method which write mille config starting from template and replacing file list and start/stop lumi
-def writeMilleConfig(run,HG_bool,lumi,LumisPerJob,fileList,dirRun):
+def writeMilleConfig(run,HG_bool,Zmumu_bool,lumi,LumisPerJob,fileList,dirRun):
     if HG_bool:
-        fileName="milleStep_ALCA_HG.py"
+        if Zmumu_bool:
+            fileName="milleStep_ALCA_HG_Zmumu.py"
+        else:
+            fileName="milleStep_ALCA_HG.py"
     else:
         fileName="milleStep_ALCA.py"
     
@@ -123,12 +179,12 @@ def writeMilleConfig(run,HG_bool,lumi,LumisPerJob,fileList,dirRun):
     f.close()
     
 # method to write condor submit script for mille job log folder(needs argument used for milleStep.sh)
-def writeMilleSubmit(run,HG_bool,lumi,fileList,dirname):
+def writeMilleSubmit(run,HG_bool,Zmumu_bool,lumi,fileList,dirname):
     with open(dirname+"/submit_mille.sub","w") as f:
         f.write("""
 Universe   = vanilla
 Executable = milleStep.sh
-Arguments  = {0} {1} {3}
+Arguments  = {0} {1} {4} {5} {3}
 Log        = {2}/log_mille.log
 Output     = {2}/out_mille.out
 Error      = {2}/error_mille.error
@@ -136,23 +192,23 @@ x509userproxy = $ENV(X509_USER_PROXY)
 +JobFlavour = "microcentury"
 +AccountingGroup = "group_u_CMS.CAF.ALCA"
 Queue
-""".format(run,HG_bool,dirname,lumi))
+""".format(run,HG_bool,dirname,lumi,Zmumu_bool,int(dirname.find("lumi_Zmumu")>0)))
     return dirname+"/submit_mille.sub"
 
 # method to write condor submit script for pede job to log folder(needs argument used for pedeStep.sh)
-def writePedeSubmit(run,HG_bool,dirname):
+def writePedeSubmit(run,HG_bool,Zmumu_bool,dirname):
     with open(dirname+"/submit_pede.sub","w") as f:
         f.write("""
 Universe   = vanilla
 Executable = pedeStep.sh
-Arguments  = {0} {1}
+Arguments  = {0} {1} {3}
 Log        = {2}/log_pede.log
 Output     = {2}/out_pede.out
 Error      = {2}/error_pede.error
 +JobFlavour = "workday"
 +AccountingGroup = "group_u_CMS.CAF.ALCA"
 Queue
-""".format(run,HG_bool,dirname))
+""".format(run,HG_bool,dirname,Zmumu_bool))
     return dirname+"/submit_pede.sub"
 
 # method to write dag submit for single run
@@ -204,28 +260,37 @@ def writeDag_Trend(dirname):
     
 
 
-def submitRun(run,HG_bool,LumisMax,LumisPerJob,StartLumi,SingleRun=True):
-    print "Submitting run",run
+def submitRun(run,HG_bool,Zmumu_bool,LumisMax,LumisPerJob,StartLumi,SingleRun=True):
+    if(Zmumu_bool and HG_bool==False):
+        print("Zmumu data can be only included in HG setup!!")
+        raise
+    
+    print "Preparing run",run
     fileDict=getFileList_run(run)
+    if Zmumu_bool: fileDict_Zmumu=getFileList_run(run,Zmumu_bool)
     if len(fileDict)>100:       # use only runs with at least 100 lumi sections
         
         LumisMax=min(max(fileDict.keys()),LumisMax)     # set maximal number of lumis to set value or maximum available lumis
         
-        cleanOutputFolder(run,HG_bool,True)     # clean output folder in case some run before fails
+        cleanOutputFolder(run,HG_bool,Zmumu_bool,True)     # clean output folder in case some run before fails
         
         for lumi in range(StartLumi,LumisMax+StartLumi,LumisPerJob):    # create run and log folder for each mille job and write config and submit
-            dirname_log=createLogFolder(run,lumi,HG_bool)
-            dirname_run=createRunFolder(run,lumi,HG_bool)
+            dirname_log=createLogFolder(run,lumi,HG_bool,Zmumu_bool)
+            dirname_run=createRunFolder(run,lumi,HG_bool,Zmumu_bool)
             fileList=getFileList_job(fileDict,lumi,LumisPerJob)
+            if Zmumu_bool: fileList_Zmumu=getFileList_job(fileDict_Zmumu,lumi,LumisPerJob)     #additional file list for Zmumu samples
             
-            writeMilleConfig(run,HG_bool,lumi,LumisPerJob,fileList,dirname_run)
+            writeMilleConfig(run,HG_bool,Zmumu_bool,lumi,LumisPerJob,fileList,dirname_run)
+            if Zmumu_bool: writeMilleConfig(run,HG_bool,Zmumu_bool,lumi,LumisPerJob,fileList_Zmumu,dirname_run.replace("lumi_","lumi_Zmumu_"))
             
-            writeMilleSubmit(run,HG_bool,lumi,fileList,dirname_log)
+            writeMilleSubmit(run,HG_bool,Zmumu_bool,lumi,fileList,dirname_log)
+            if Zmumu_bool: writeMilleSubmit(run,HG_bool,Zmumu_bool,lumi,fileList,dirname_log.replace("lumi_","lumi_Zmumu_"))
     
         dirname_totalRun=os.path.dirname(dirname_log)
-        writePedeSubmit(run,HG_bool,dirname_totalRun)       # write pede submit (not config needed since cmsDriver.py is used in pedeStep.sh)
+        writePedeSubmit(run,HG_bool,Zmumu_bool,dirname_totalRun)       # write pede submit (not config needed since cmsDriver.py is used in pedeStep.sh)
         if SingleRun:   # single runs are currently submitted right away
             dugSubmit=writeDag(dirname_totalRun)
+            print "Submitting run",run
             subprocess.call(["condor_submit_dag", "-f", dirname_totalRun+"/"+dugSubmit])
         return True
     else:
@@ -260,59 +325,64 @@ def submitRunTotal(run,HG_bool,LumisPerJob):
     else:
         print "Lumi list empty"
 
-print "!!!!!!Check if correct SG is loaded in the beginning and if study can be iterative (payloads already in output folder)!!!!!!!!"
+if __name__ == "__main__":
+    
+    print "!!!!!!Check if correct SG is loaded in the beginning and if study can be iterative (payloads already in output folder)!!!!!!!!"
 
-# set json
-url = "https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions23/DCSOnly_JSONS/Collisions23_13p6TeV_eraBCD_366403_370790_DCSOnly_TkPx.json"
+    # set json
+    url = "https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions23/DCSOnly_JSONS/Collisions23_13p6TeV_eraBCD_366403_370790_DCSOnly_TkPx.json"
+    
+    # set alignment options
+    useHG = True
+    useZmumu = True
 
-# open url
-response = urllib.urlopen(url)
+    # open url
+    response = urllib.urlopen(url)
 
-# read json (and merge with lowPU)
-data = json.loads(response.read())
+    # read json (and merge with lowPU)
+    data = json.loads(response.read())
 
-# get ordered dictionary with {run:"lumiRange1, lumiRange2"}
-data = collections.OrderedDict(sorted(data.items()))
+    # get ordered dictionary with {run:"lumiRange1, lumiRange2"}
+    data = collections.OrderedDict(sorted(data.items()))
 
-# define run range (different eras are usually run in different dag jobs)
-startingRun=370300
-stoppingRun=370300
+    # define run range (different eras are usually run in different dag jobs)
+    startingRun=370300
+    stoppingRun=370300
 
-# set helper variables
-longestRange=0
-totalLS=0
-startLongestRange=0
+    # set helper variables
+    longestRange=0
+    totalLS=0
+    startLongestRange=0
 
-# define the number of lumi sections to be used per run
-numberOfLS=100
+    # define the number of lumi sections to be used per run
+    numberOfLS=100
 
-# Run with max 100 LS
+    # Run with max 100 LS
 
-# loop over each run in the selected range
-for run in data:
-    if int(run)>=startingRun and int(run)<=stoppingRun:
-        for lsRange in data[run]:   # loop to find the longest range of lumis and store its length
-            if lsRange[1]-lsRange[0]>longestRange: 
-                longestRange=lsRange[1]-lsRange[0]
-                startLongestRange=lsRange[0]
-            totalLS+=lsRange[1]-lsRange[0]
-        if longestRange>100:    # use run only if there is a lumi range with more an 100 LS
-            if startLongestRange<20:startLongestRange=20    # do not use the first 100 Lumis
-            #  ~submitRun(run,0,numberOfLS,5,startLongestRange,False)   # prepare LG with 5 lumis per mille job
-            submitRun(run,1,numberOfLS,5,startLongestRange,False)   #prepare HG with 5 lumis per mille job
-        longestRange=0      # set variables to zero for next run
-        totalLS=0
-        
-# Submit all runs with full LS (second argument of submitRunTotal defines LG or HG)
-'''
-for run in data:
-    if int(run)>=startingRun and int(run)<=stoppingRun:
-        #  ~submitRunTotal(run,1,5) #HG
-        #  ~submitRunTotal(run,0,5) #LG
-'''
-# write dag submits for trends
-writeDag_Trend("/afs/cern.ch/user/d/dmeuser/alignment/PCL/condor_PCL_2023/condor_PCL/logs")
+    # loop over each run in the selected range
+    for run in data:
+        if int(run)>=startingRun and int(run)<=stoppingRun:
+            for lsRange in data[run]:   # loop to find the longest range of lumis and store its length
+                if lsRange[1]-lsRange[0]>longestRange: 
+                    longestRange=lsRange[1]-lsRange[0]
+                    startLongestRange=lsRange[0]
+                totalLS+=lsRange[1]-lsRange[0]
+            if longestRange>100:    # use run only if there is a lumi range with more an 100 LS
+                if startLongestRange<20:startLongestRange=20    # do not use the first 100 Lumis
+                submitRun(run,int(useHG),int(useZmumu),numberOfLS,5,startLongestRange,False)   #prepare run
+            longestRange=0      # set variables to zero for next run
+            totalLS=0
+            
+    # Submit all runs with full LS (second argument of submitRunTotal defines LG or HG)
+    '''
+    for run in data:
+        if int(run)>=startingRun and int(run)<=stoppingRun:
+            #  ~submitRunTotal(run,1,5) #HG
+            #  ~submitRunTotal(run,0,5) #LG
+    '''
+    # write dag submits for trends
+    writeDag_Trend("/afs/cern.ch/user/d/dmeuser/alignment/PCL/condor_PCL_2023/condor_PCL/logs")
 
-#Getting payload for PR:conddb_import -f frontier://FrontierProd/CMS_CONDITIONS -i TrackerAlignment_PCL_byRun_v2_express -c sqlite:payloads_HG.db -b 355094 -e 355101 -t SiPixelAliHG_pcl
+    #Getting payload for PR:conddb_import -f frontier://FrontierProd/CMS_CONDITIONS -i TrackerAlignment_PCL_byRun_v2_express -c sqlite:payloads_HG_Zmumu.db -b 370295 -e 370295 -t SiPixelAliHGCombined_pcl
 
-#load t0 setting: module load lxbatch/tzero
+    #load t0 setting: module load lxbatch/tzero

@@ -3,7 +3,9 @@
 # takes run number, boolean for HG running and start_lumi(only for proper folder/file names) as command line arguments
 RunNo="$1"
 HG_bool=$2
-Start_Lumi=$3
+Zmumu_bool=$3   #running a campaign with Zmumu (can be also job with minBias input)
+Zmumu_input_bool=$4     #this mille step runs on Zmumu input
+Start_Lumi=$5
 
 # source CMSSW (has to be changed for different user)
 cmsswDir=/afs/cern.ch/user/d/dmeuser/alignment/PCL/condor_PCL_2023/CMSSW_13_3_0_pre4/src
@@ -26,18 +28,40 @@ workPath=/afs/cern.ch/work/d/dmeuser/alignment/PCL/condor_PCL_2023/run_directori
 # check if running HG or LG
 if [ $HG_bool -eq 1 ]
 then
-    echo "Running with HG"
-    
-    # prepare output directory
-    outputDir=$cafPath/HG_run$RunNo/lumi_$Start_Lumi
-    mkdir $outputDir -p
-    
-    # define running directory (should already exist due to running createSubmitDAG.py)
-    runDir=$workPath/HG_run$RunNo/lumi_$Start_Lumi
-    cd $runDir
-    
-    # run mille step in run directory (py script already produced in createSubmitDAG.py)
-    cmsRun milleStep_ALCA_HG.py
+    #check if running with Zmumu
+    if [ $Zmumu_bool -eq 1 ]
+    then
+        echo "Running with HG including Zmumu"
+        #check if Zmumu input
+        if [ $Zmumu_input_bool -eq 1 ]
+        then 
+            folderName=lumi_Zmumu_$Start_Lumi
+        else
+            folderName=lumi_$Start_Lumi
+        fi
+        # prepare output directory
+        outputDir=$cafPath/HG_Zmumu_run$RunNo/$folderName
+        mkdir $outputDir -p
+        
+        # define running directory (should already exist due to running createSubmitDAG.py)
+        runDir=$workPath/HG_Zmumu_run$RunNo/$folderName
+        cd $runDir
+        
+        # run mille step in run directory (py script already produced in createSubmitDAG.py)
+        cmsRun milleStep_ALCA_HG_Zmumu.py
+    else
+        echo "Running with HG"
+        # prepare output directory
+        outputDir=$cafPath/HG_run$RunNo/lumi_$Start_Lumi
+        mkdir $outputDir -p
+        
+        # define running directory (should already exist due to running createSubmitDAG.py)
+        runDir=$workPath/HG_run$RunNo/lumi_$Start_Lumi
+        cd $runDir
+        
+        # run mille step in run directory (py script already produced in createSubmitDAG.py)
+        cmsRun milleStep_ALCA_HG.py
+    fi
 else
     echo "Running with nominal granularity"
     
@@ -58,10 +82,22 @@ mv $runDir/* $outputDir
 
 # rename and move mille step output to be able to use it in the pede step
 cd $outputDir
-mv PromptCalibProdSiPixelAli.root PromptCalibProdSiPixelAli_$Start_Lumi.root
-cp PromptCalibProdSiPixelAli_$Start_Lumi.root ../
-mv PromptCalibProdSiPixelAliHG.root PromptCalibProdSiPixelAliHG_$Start_Lumi.root
-cp PromptCalibProdSiPixelAliHG_$Start_Lumi.root ../
+if [ $Zmumu_bool -eq 1 ]
+then
+    if [ $Zmumu_input_bool -eq 1 ]
+    then
+        mv PromptCalibProdSiPixelAliHGComb.root PromptCalibProdSiPixelAliHGComb_Zmumu_$Start_Lumi.root
+        cp PromptCalibProdSiPixelAliHGComb_Zmumu_$Start_Lumi.root ../
+    else
+        mv PromptCalibProdSiPixelAliHGComb.root PromptCalibProdSiPixelAliHGComb_minBias_$Start_Lumi.root
+        cp PromptCalibProdSiPixelAliHGComb_minBias_$Start_Lumi.root ../
+    fi
+else
+    mv PromptCalibProdSiPixelAli.root PromptCalibProdSiPixelAli_$Start_Lumi.root
+    cp PromptCalibProdSiPixelAli_$Start_Lumi.root ../
+    mv PromptCalibProdSiPixelAliHG.root PromptCalibProdSiPixelAliHG_$Start_Lumi.root
+    cp PromptCalibProdSiPixelAliHG_$Start_Lumi.root ../
+fi
 
 # go back to base directory
 cd $baseDir
