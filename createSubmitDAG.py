@@ -354,10 +354,11 @@ if __name__ == "__main__":
     ################################# Config Part ###############################################################
     
     # define workspace, base directory and output directory (has to be changed for different user)
-    workPath ="/afs/cern.ch/work/d/dmeuser/alignment/PCL/condor_PCL_2023/run_directories"
-    basePath = "/afs/cern.ch/user/d/dmeuser/alignment/PCL/condor_PCL_2023/condor_PCL"
-    logPath = "/afs/cern.ch/user/d/dmeuser/alignment/PCL/condor_PCL_2023/condor_PCL/logs"
-    outputPath = "/eos/cms/store/caf/user/dmeuser/PCL/condor_PCL_2023/output"
+    # $projectName ??
+    workPath ="/afs/cern.ch/cms/CAF/CMSALCA/ALCA_TRACKERALIGN/data/commonValidation/alignmentObjects/phnattla/2023/PCL/condor_PCL/run_directories"
+    basePath = "/afs/cern.ch/cms/CAF/CMSALCA/ALCA_TRACKERALIGN/data/commonValidation/alignmentObjects/phnattla/2023/PCL/condor_PCL"
+    logPath = "/afs/cern.ch/cms/CAF/CMSALCA/ALCA_TRACKERALIGN/data/commonValidation/alignmentObjects/phnattla/2023/PCL/condor_PCL/logs"
+    outputPath = "/eos/cms/store/group/alca_trackeralign/phnattla/condor_PCL_2023/output"
 
     # set json
     url = "https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions23/DCSOnly_JSONS/Collisions23_13p6TeV_eraBCD_366403_370790_DCSOnly_TkPx.json"

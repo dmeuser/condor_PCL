@@ -9,22 +9,26 @@ Start_Lumi=$5
 projectName=$6
 
 # source CMSSW (has to be changed for different user)
-cmsswDir=/afs/cern.ch/user/d/dmeuser/alignment/PCL/condor_PCL_2023/CMSSW_13_3_0_pre4/src
+#~ cmsswDir=/afs/cern.ch/user/d/dmeuser/alignment/PCL/condor_PCL_2023/CMSSW_13_3_0_pre4/src
+cmsswDir=/afs/cern.ch/cms/CAF/CMSALCA/ALCA_TRACKERALIGN/data/commonValidation/alignmentObjects/phnattla/2023/PCL/CMSSW_13_3_0_pre4/src
 cd $cmsswDir
 eval `scramv1 runtime -sh`
 
 # set home directory (has to be changed for different user)
-export HOME=/afs/cern.ch/user/d/dmeuser
+export HOME=/afs/cern.ch/user/p/phnattla
 
 # set base directory (has to be changed for different user)
-baseDir=/afs/cern.ch/user/d/dmeuser/alignment/PCL/condor_PCL_2023/condor_PCL
+baseDir=/afs/cern.ch/cms/CAF/CMSALCA/ALCA_TRACKERALIGN/data/commonValidation/alignmentObjects/phnattla/2023/PCL/condor_PCL
 cd $baseDir
 
 # set path to CAF (has to be changed for different user and created manually)
-cafPath=/eos/cms/store/caf/user/dmeuser/PCL/condor_PCL_2023/output/$projectName
+#~ cafPath=/eos/cms/store/caf/user/dmeuser/PCL/condor_PCL_2023/output/$projectName
+cafPath=/eos/cms/store/group/alca_trackeralign/phnattla/condor_PCL_2023/output/$projectName
+
 
 # set path to working space (has to be changed for different user and created manually)
-workPath=/afs/cern.ch/work/d/dmeuser/alignment/PCL/condor_PCL_2023/run_directories/$projectName
+#~ workPath=/afs/cern.ch/work/d/dmeuser/alignment/PCL/condor_PCL_2023/run_directories/$projectName
+workPath=/afs/cern.ch/cms/CAF/CMSALCA/ALCA_TRACKERALIGN/data/commonValidation/alignmentObjects/phnattla/2023/PCL/condor_PCL/run_directories/$projectName
 
 # check if running HG or LG
 if [ $HG_bool -eq 1 ]
