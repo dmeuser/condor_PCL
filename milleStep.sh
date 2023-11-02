@@ -6,6 +6,7 @@ HG_bool=$2
 Zmumu_bool=$3   #running a campaign with Zmumu (can be also job with minBias input)
 Zmumu_input_bool=$4     #this mille step runs on Zmumu input
 Start_Lumi=$5
+projectName=$6
 
 # source CMSSW (has to be changed for different user)
 cmsswDir=/afs/cern.ch/user/d/dmeuser/alignment/PCL/condor_PCL_2023/CMSSW_13_3_0_pre4/src
@@ -20,10 +21,10 @@ baseDir=/afs/cern.ch/user/d/dmeuser/alignment/PCL/condor_PCL_2023/condor_PCL
 cd $baseDir
 
 # set path to CAF (has to be changed for different user and created manually)
-cafPath=/eos/cms/store/caf/user/dmeuser/PCL/condor_PCL_2023/output
+cafPath=/eos/cms/store/caf/user/dmeuser/PCL/condor_PCL_2023/output/$projectName
 
 # set path to working space (has to be changed for different user and created manually)
-workPath=/afs/cern.ch/work/d/dmeuser/alignment/PCL/condor_PCL_2023/run_directories
+workPath=/afs/cern.ch/work/d/dmeuser/alignment/PCL/condor_PCL_2023/run_directories/$projectName
 
 # check if running HG or LG
 if [ $HG_bool -eq 1 ]

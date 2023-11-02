@@ -99,8 +99,8 @@ process.GlobalTag = GlobalTag(process.GlobalTag, '130X_dataRun3_Prompt_v2', '')
 process.GlobalTag.toGet = cms.VPSet(
     cms.PSet(
         record = cms.string('TrackerAlignmentRcd'),
-        tag = cms.string('SiPixelAliHG_pcl'),
-        connect = cms.string('sqlite_file:/eos/cms/store/caf/user/dmeuser/PCL/condor_PCL_2023/output/payloads.db')),
+        tag = cms.string('SiPixelAli_pcl'),
+        connect = cms.string('sqlite_file:<outputPath>/payloads.db')),
     cms.PSet(
         record = cms.string('AlignPCLThresholdsHGRcd'),
         tag = cms.string('PCLThresholds_express_v0'),

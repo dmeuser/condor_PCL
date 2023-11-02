@@ -100,7 +100,7 @@ process.GlobalTag.toGet = cms.VPSet(
     cms.PSet(
         record = cms.string('TrackerAlignmentRcd'),
         tag = cms.string('SiPixelAliHG_pcl'),
-        connect = cms.string('sqlite_file:/eos/cms/store/caf/user/dmeuser/PCL/condor_PCL_2023/output/payloads_HG.db')),
+        connect = cms.string('sqlite_file:<outputPath>/payloads_HG.db')),
     cms.PSet(
         record = cms.string('AlignPCLThresholdsHGRcd'),
         tag = cms.string('PCLThresholds_express_v0'),

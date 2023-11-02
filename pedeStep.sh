@@ -4,6 +4,7 @@
 RunNo="$1"
 HG_bool=$2
 Zmumu_bool=$3
+projectName=$4
 
 # source CMSSW (has to be changed for different user)
 cmsswDir=/afs/cern.ch/user/d/dmeuser/alignment/PCL/condor_PCL_2023/CMSSW_13_3_0_pre4/src
@@ -11,7 +12,7 @@ cd $cmsswDir
 eval `scramv1 runtime -sh`
 
 # set path to CAF (has to be changed for different user)
-cafPath=/eos/cms/store/caf/user/dmeuser/PCL/condor_PCL_2023/output
+cafPath=/eos/cms/store/caf/user/dmeuser/PCL/condor_PCL_2023/output/$projectName
 
 # check if running HG or LG
 if [ $HG_bool -eq 1 ]

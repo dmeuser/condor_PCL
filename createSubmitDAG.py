@@ -7,10 +7,6 @@ import urllib
 import json
 import collections
 
-# define workspace, base directory and output directory (has to be changed for different user)
-workPath="/afs/cern.ch/work/d/dmeuser/alignment/PCL/condor_PCL_2023/run_directories"
-basePath="/afs/cern.ch/user/d/dmeuser/alignment/PCL/condor_PCL_2023/condor_PCL"
-outputPath="/eos/cms/store/caf/user/dmeuser/PCL/condor_PCL_2023/output"
 
 # method to merge two dictionaries (mostly used when adding lowPU runs into nominal range)
 def merge_two_dicts(x, y):
@@ -73,16 +69,40 @@ def getFileList_run(run,Zmumu_bool=False):
         pickle.dump(fileDict, f, pickle.HIGHEST_PROTOCOL)
     return fileDict
     
+# method do import starting geometry from global tag
+def getSGfromTag(tag,run,HG_bool,Zmumu_bool):
+    print "Import starting geomtry from tag "+tag
+    
+    if not os.path.exists(outputPath):  #create output path
+        try:
+            os.makedirs(outputPath)
+        except OSError as exc: # Guard against race condition
+            if exc.errno != errno.EEXIST:
+                raise
+    
+    if HG_bool:
+        if Zmumu_bool:
+            outputFile="payloads_HG_Zmumu.db"
+            outputName="SiPixelAliHGCombined_pcl"
+        else:
+            outputFile="payloads_HG.db"
+            outputName="SiPixelAliHG_pcl"
+    else :
+        outputFile="payloads.db"
+        outputName="SiPixelAli_pcl"
+    output=subprocess.check_output(["conddb_import -f frontier://FrontierProd/CMS_CONDITIONS -i {0} -c sqlite:{1} -b {2} -e {2} -t {3}".format(tag,outputFile,run-1,outputName)], shell=True)
+    shutil.move(outputFile,outputPath+"/"+outputFile)
+    
 # method to create the log folder, returns path to log folder
 def createLogFolder(run,lumi,HG_bool,Zmumu_bool):
     if HG_bool:
         if Zmumu_bool:
-            dirname=basePath+"/logs/HG_Zmumu_run"+str(run)+"/lumi_"+str(lumi)
-            dirnameZmumu=basePath+"/logs/HG_Zmumu_run"+str(run)+"/lumi_Zmumu_"+str(lumi)    #require additional folder for Zmumu data (not only minBias)
+            dirname=logPath+"/HG_Zmumu_run"+str(run)+"/lumi_"+str(lumi)
+            dirnameZmumu=logPath+"/HG_Zmumu_run"+str(run)+"/lumi_Zmumu_"+str(lumi)    #require additional folder for Zmumu data (not only minBias)
         else:
-            dirname=basePath+"/logs/HG_run"+str(run)+"/lumi_"+str(lumi)
+            dirname=logPath+"/HG_run"+str(run)+"/lumi_"+str(lumi)
     else :
-        dirname=basePath+"/logs/run"+str(run)+"/lumi_"+str(lumi)
+        dirname=logPath+"/run"+str(run)+"/lumi_"+str(lumi)
         
     if not os.path.exists(dirname):
         try:
@@ -129,15 +149,18 @@ def createRunFolder(run,lumi,HG_bool,Zmumu_bool):
     
     return dirname
 
-# method to clean output folder (useful in case job are failing)
+# method to clean output folder folder(useful in case job are failing)
 def cleanOutputFolder(run,HG_bool,Zmumu_bool,complete):
     if HG_bool:
         if Zmumu_bool:
             dirname=outputPath+"/HG_Zmumu_run"+str(run)
+            logname=logPath+"/HG_Zmumu_run"+str(run)
         else:
             dirname=outputPath+"/HG_run"+str(run)
+            logname=logPath+"/HG_run"+str(run)
     else :
         dirname=outputPath+"/run"+str(run)
+        logname=logPath+"/run"+str(run)
     if os.path.exists(dirname):
         if complete:
             shutil.rmtree(dirname)
@@ -173,6 +196,7 @@ def writeMilleConfig(run,HG_bool,Zmumu_bool,lumi,LumisPerJob,fileList,dirRun):
 
     newdata = filedata.replace("'file:milleStep_RECO.root'",fileList)       # set file list
     newdata = newdata.replace("run:startLumi-run:endLumi",str(run)+":"+str(lumi)+"-"+str(run)+":"+str(lumi+LumisPerJob-1))      # set start and stop lumi
+    newdata = newdata.replace("<outputPath>",outputPath)      # set output path to find payload file
 
     f = open(dirRun+"/"+fileName,'w')   # write config to run directory
     f.write(newdata)
@@ -184,7 +208,7 @@ def writeMilleSubmit(run,HG_bool,Zmumu_bool,lumi,fileList,dirname):
         f.write("""
 Universe   = vanilla
 Executable = milleStep.sh
-Arguments  = {0} {1} {4} {5} {3}
+Arguments  = {0} {1} {4} {5} {3} {6}
 Log        = {2}/log_mille.log
 Output     = {2}/out_mille.out
 Error      = {2}/error_mille.error
@@ -192,7 +216,7 @@ x509userproxy = $ENV(X509_USER_PROXY)
 +JobFlavour = "microcentury"
 +AccountingGroup = "group_u_CMS.CAF.ALCA"
 Queue
-""".format(run,HG_bool,dirname,lumi,Zmumu_bool,int(dirname.find("lumi_Zmumu")>0)))
+""".format(run,HG_bool,dirname,lumi,Zmumu_bool,int(dirname.find("lumi_Zmumu")>0),projectName))
     return dirname+"/submit_mille.sub"
 
 # method to write condor submit script for pede job to log folder(needs argument used for pedeStep.sh)
@@ -201,14 +225,14 @@ def writePedeSubmit(run,HG_bool,Zmumu_bool,dirname):
         f.write("""
 Universe   = vanilla
 Executable = pedeStep.sh
-Arguments  = {0} {1} {3}
+Arguments  = {0} {1} {3} {4}
 Log        = {2}/log_pede.log
 Output     = {2}/out_pede.out
 Error      = {2}/error_pede.error
 +JobFlavour = "workday"
 +AccountingGroup = "group_u_CMS.CAF.ALCA"
 Queue
-""".format(run,HG_bool,dirname,Zmumu_bool))
+""".format(run,HG_bool,dirname,Zmumu_bool,projectName))
     return dirname+"/submit_pede.sub"
 
 # method to write dag submit for single run
@@ -268,7 +292,7 @@ def submitRun(run,HG_bool,Zmumu_bool,LumisMax,LumisPerJob,StartLumi,SingleRun=Tr
     print "Preparing run",run
     fileDict=getFileList_run(run)
     if Zmumu_bool: fileDict_Zmumu=getFileList_run(run,Zmumu_bool)
-    if len(fileDict)>100:       # use only runs with at least 100 lumi sections
+    if len(fileDict)>LumisMax:       # use only runs with at least 100 lumi sections
         
         LumisMax=min(max(fileDict.keys()),LumisMax)     # set maximal number of lumis to set value or maximum available lumis
         
@@ -326,15 +350,49 @@ def submitRunTotal(run,HG_bool,LumisPerJob):
         print "Lumi list empty"
 
 if __name__ == "__main__":
+        
+    ################################# Config Part ###############################################################
     
-    print "!!!!!!Check if correct SG is loaded in the beginning and if study can be iterative (payloads already in output folder)!!!!!!!!"
+    # define workspace, base directory and output directory (has to be changed for different user)
+    workPath ="/afs/cern.ch/work/d/dmeuser/alignment/PCL/condor_PCL_2023/run_directories"
+    basePath = "/afs/cern.ch/user/d/dmeuser/alignment/PCL/condor_PCL_2023/condor_PCL"
+    logPath = "/afs/cern.ch/user/d/dmeuser/alignment/PCL/condor_PCL_2023/condor_PCL/logs"
+    outputPath = "/eos/cms/store/caf/user/dmeuser/PCL/condor_PCL_2023/output"
 
     # set json
     url = "https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions23/DCSOnly_JSONS/Collisions23_13p6TeV_eraBCD_366403_370790_DCSOnly_TkPx.json"
     
+    # define project name
+    projectName = "testZmumu"
+    
+    # define tag for import of SG
+    tag = "TrackerAlignment_PCL_byRun_v2_express"
+    
     # set alignment options
     useHG = True
     useZmumu = True
+    
+    # define the number of lumi sections to be used per run
+    #  ~numberOfLS=100
+    numberOfLS=10
+    
+    # define run range (different eras are usually run in different dag jobs)
+    startingRun=370300
+    stoppingRun=370310
+    
+    ################################# End Config Part ###############################################################
+    
+    # append project name to paths
+    workPath = workPath+"/"+projectName
+    logPath = logPath+"/"+projectName
+    outputPath = outputPath+"/"+projectName
+    
+    # get starting geometry from tag
+    getSGfromTag(tag,startingRun,useHG,useZmumu)
+    
+    # clean log/run folder
+    if os.path.exists(logPath): shutil.rmtree(logPath)
+    if os.path.exists(workPath): shutil.rmtree(workPath)
 
     # open url
     response = urllib.urlopen(url)
@@ -345,19 +403,10 @@ if __name__ == "__main__":
     # get ordered dictionary with {run:"lumiRange1, lumiRange2"}
     data = collections.OrderedDict(sorted(data.items()))
 
-    # define run range (different eras are usually run in different dag jobs)
-    startingRun=370300
-    stoppingRun=370300
-
     # set helper variables
     longestRange=0
     totalLS=0
     startLongestRange=0
-
-    # define the number of lumi sections to be used per run
-    numberOfLS=100
-
-    # Run with max 100 LS
 
     # loop over each run in the selected range
     for run in data:
@@ -367,8 +416,8 @@ if __name__ == "__main__":
                     longestRange=lsRange[1]-lsRange[0]
                     startLongestRange=lsRange[0]
                 totalLS+=lsRange[1]-lsRange[0]
-            if longestRange>100:    # use run only if there is a lumi range with more an 100 LS
-                if startLongestRange<20:startLongestRange=20    # do not use the first 100 Lumis
+            if longestRange>numberOfLS:    # use run only if there is a lumi range with more an numberOfLS LS
+                if startLongestRange<20:startLongestRange=20    # do not use the first 20 Lumis (match PCL config)
                 submitRun(run,int(useHG),int(useZmumu),numberOfLS,5,startLongestRange,False)   #prepare run
             longestRange=0      # set variables to zero for next run
             totalLS=0
@@ -380,9 +429,8 @@ if __name__ == "__main__":
             #  ~submitRunTotal(run,1,5) #HG
             #  ~submitRunTotal(run,0,5) #LG
     '''
+    
     # write dag submits for trends
-    writeDag_Trend("/afs/cern.ch/user/d/dmeuser/alignment/PCL/condor_PCL_2023/condor_PCL/logs")
-
-    #Getting payload for PR:conddb_import -f frontier://FrontierProd/CMS_CONDITIONS -i TrackerAlignment_PCL_byRun_v2_express -c sqlite:payloads_HG_Zmumu.db -b 370295 -e 370295 -t SiPixelAliHGCombined_pcl
+    writeDag_Trend(logPath)
 
     #load t0 setting: module load lxbatch/tzero
