@@ -69,10 +69,6 @@ Furthermore the proxy has to be copied to a path accesible by all condor nodes a
 alias voms="voms-proxy-init --voms cms --valid 192:00 && cp /tmp/x509up_u91806 ~/proxy && export X509_USER_PROXY=/afs/cern.ch/user/d/dmeuser/proxy/x509up_u91806"
 ```
 Here, `/d/dmeuser/` has to be replaced by your personal path and the `proxy` folder has to be created. Afterwards, one should be able to use `voms` to create the proxy, copy it to the `proxy` folder and set the `X509_USER_PROXY` variable.
-
-In addition one has to make sure, that the output folder contains a valid db file named `payloads.db`(for LG),  `payloads_HG.db`(for HG) or `payloads_HG_Zmumu.db`(for HG+Zmumu), where the starting geometry is stored. A db file with the starting geometry using PromptReco can always be produced by (remember to adapt the run and tag and to rename the db file):
-```
-conddb_import -f frontier://FrontierProd/CMS_CONDITIONS -i TrackerAlignment_PCL_byRun_v2_express -c sqlite:payloads(_HG).db -b <BeginRun> -e <EndRun> -t SiPixelAli<PCLtype>_pcl
 ```
 After this the configs and submits can be prepared using:
 ```
