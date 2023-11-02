@@ -220,19 +220,19 @@ Queue
     return dirname+"/submit_mille.sub"
 
 # method to write condor submit script for pede job to log folder(needs argument used for pedeStep.sh)
-def writePedeSubmit(run,HG_bool,Zmumu_bool,dirname):
+def writePedeSubmit(run,HG_bool,Zmumu_bool,dirname,weightZmumu):
     with open(dirname+"/submit_pede.sub","w") as f:
         f.write("""
 Universe   = vanilla
 Executable = pedeStep.sh
-Arguments  = {0} {1} {3} {4}
+Arguments  = {0} {1} {3} {4} {5}
 Log        = {2}/log_pede.log
 Output     = {2}/out_pede.out
 Error      = {2}/error_pede.error
 +JobFlavour = "workday"
 +AccountingGroup = "group_u_CMS.CAF.ALCA"
 Queue
-""".format(run,HG_bool,dirname,Zmumu_bool,projectName))
+""".format(run,HG_bool,dirname,Zmumu_bool,projectName,weightZmumu))
     return dirname+"/submit_pede.sub"
 
 # method to write dag submit for single run
@@ -284,7 +284,7 @@ def writeDag_Trend(dirname):
     
 
 
-def submitRun(run,HG_bool,Zmumu_bool,LumisMax,LumisPerJob,StartLumi,SingleRun=True):
+def submitRun(run,HG_bool,Zmumu_bool,LumisMax,LumisPerJob,StartLumi,SingleRun=True,weightZmumu=1):
     if(Zmumu_bool and HG_bool==False):
         print("Zmumu data can be only included in HG setup!!")
         raise
@@ -311,7 +311,7 @@ def submitRun(run,HG_bool,Zmumu_bool,LumisMax,LumisPerJob,StartLumi,SingleRun=Tr
             if Zmumu_bool: writeMilleSubmit(run,HG_bool,Zmumu_bool,lumi,fileList,dirname_log.replace("lumi_","lumi_Zmumu_"))
     
         dirname_totalRun=os.path.dirname(dirname_log)
-        writePedeSubmit(run,HG_bool,Zmumu_bool,dirname_totalRun)       # write pede submit (not config needed since cmsDriver.py is used in pedeStep.sh)
+        writePedeSubmit(run,HG_bool,Zmumu_bool,dirname_totalRun,weightZmumu)       # write pede submit (not config needed since cmsDriver.py is used in pedeStep.sh)
         if SingleRun:   # single runs are currently submitted right away
             dugSubmit=writeDag(dirname_totalRun)
             print "Submitting run",run
@@ -373,13 +373,16 @@ if __name__ == "__main__":
     useHG = True
     useZmumu = True
     
+    # set weight for Zmumu
+    weightZmumu = 10
+    
     # define the number of lumi sections to be used per run
     #  ~numberOfLS=100
     numberOfLS=10
     
     # define run range (different eras are usually run in different dag jobs)
     startingRun=370300
-    stoppingRun=370310
+    stoppingRun=370300
     
     ################################# End Config Part ###############################################################
     
@@ -419,7 +422,7 @@ if __name__ == "__main__":
                 totalLS+=lsRange[1]-lsRange[0]
             if longestRange>numberOfLS:    # use run only if there is a lumi range with more an numberOfLS LS
                 if startLongestRange<20:startLongestRange=20    # do not use the first 20 Lumis (match PCL config)
-                submitRun(run,int(useHG),int(useZmumu),numberOfLS,5,startLongestRange,False)   #prepare run
+                submitRun(run,int(useHG),int(useZmumu),numberOfLS,5,startLongestRange,False,weightZmumu)   #prepare run
             longestRange=0      # set variables to zero for next run
             totalLS=0
             
