@@ -30,31 +30,37 @@ def getFileList_run(run,Zmumu_bool=False):
     elif run<=367079:
         if Zmumu_bool:
             output=subprocess.check_output(["dasgoclient -query='lumi,file dataset=/Muon0/Run2023B-TkAlZMuMu-PromptReco-v1/ALCARECO run={}'".format(run)], shell=True)
+            output+=subprocess.check_output(["dasgoclient -query='lumi,file dataset=/Muon1/Run2023B-TkAlZMuMu-PromptReco-v1/ALCARECO run={}'".format(run)], shell=True)
         else:
             output=subprocess.check_output(["dasgoclient -query='lumi,file dataset=/HLTPhysics/Run2023B-TkAlMinBias-PromptReco-v1/ALCARECO run={}'".format(run)], shell=True)
     elif run<=367619:
         if Zmumu_bool:
             output=subprocess.check_output(["dasgoclient -query='lumi,file dataset=/Muon0/Run2023C-TkAlZMuMu-PromptReco-v1/ALCARECO run={}'".format(run)], shell=True)
+            output+=subprocess.check_output(["dasgoclient -query='lumi,file dataset=/Muon1/Run2023C-TkAlZMuMu-PromptReco-v1/ALCARECO run={}'".format(run)], shell=True)
         else:
             output=subprocess.check_output(["dasgoclient -query='lumi,file dataset=/HLTPhysics/Run2023C-TkAlMinBias-PromptReco-v1/ALCARECO run={}'".format(run)], shell=True)
     elif run<=367840:
         if Zmumu_bool:
             output=subprocess.check_output(["dasgoclient -query='lumi,file dataset=/Muon0/Run2023C-TkAlZMuMu-PromptReco-v2/ALCARECO run={}'".format(run)], shell=True)
+            output+=subprocess.check_output(["dasgoclient -query='lumi,file dataset=/Muon1/Run2023C-TkAlZMuMu-PromptReco-v2/ALCARECO run={}'".format(run)], shell=True)
         else:
             output=subprocess.check_output(["dasgoclient -query='lumi,file dataset=/HLTPhysics/Run2023C-TkAlMinBias-PromptReco-v2/ALCARECO run={}'".format(run)], shell=True)
     elif run<=369802:
         if Zmumu_bool:
             output=subprocess.check_output(["dasgoclient -query='lumi,file dataset=/Muon0/Run2023C-TkAlZMuMu-PromptReco-v4/ALCARECO run={}'".format(run)], shell=True)
+            output+=subprocess.check_output(["dasgoclient -query='lumi,file dataset=/Muon1/Run2023C-TkAlZMuMu-PromptReco-v4/ALCARECO run={}'".format(run)], shell=True)
         else:
             output=subprocess.check_output(["dasgoclient -query='lumi,file dataset=/HLTPhysics/Run2023C-TkAlMinBias-PromptReco-v4/ALCARECO run={}'".format(run)], shell=True)
     elif run<=370580:
         if Zmumu_bool:
             output=subprocess.check_output(["dasgoclient -query='lumi,file dataset=/Muon0/Run2023D-TkAlZMuMu-PromptReco-v1/ALCARECO run={}'".format(run)], shell=True)
+            output+=subprocess.check_output(["dasgoclient -query='lumi,file dataset=/Muon1/Run2023D-TkAlZMuMu-PromptReco-v1/ALCARECO run={}'".format(run)], shell=True)
         else:
             output=subprocess.check_output(["dasgoclient -query='lumi,file dataset=/HLTPhysics/Run2023D-TkAlMinBias-PromptReco-v1/ALCARECO run={}'".format(run)], shell=True)
     elif run<=371227:
         if Zmumu_bool:
             output=subprocess.check_output(["dasgoclient -query='lumi,file dataset=/Muon0/Run2023D-TkAlZMuMu-PromptReco-v2/ALCARECO run={}'".format(run)], shell=True)
+            output+=subprocess.check_output(["dasgoclient -query='lumi,file dataset=/Muon1/Run2023D-TkAlZMuMu-PromptReco-v2/ALCARECO run={}'".format(run)], shell=True)
         else:
             output=subprocess.check_output(["dasgoclient -query='lumi,file dataset=/HLTPhysics/Run2023D-TkAlMinBias-PromptReco-v2/ALCARECO run={}'".format(run)], shell=True)
     fileDict={}
@@ -64,7 +70,10 @@ def getFileList_run(run,Zmumu_bool=False):
             fileName = line.split("[")[0]
             for i in range(len(lumi)):
                 if int(lumi[i])<20: continue    # first 20 lumi section should not be used for study
-                fileDict[int(lumi[i])]=fileName
+                if int(lumi[i]) in fileDict:
+                    fileDict[int(lumi[i])]+="','"+fileName.strip()
+                else:
+                    fileDict[int(lumi[i])]=fileName.strip()
     with open("./testDict.pkl","wb") as f:      # write dictionary to pkl               
         pickle.dump(fileDict, f, pickle.HIGHEST_PROTOCOL)
     return fileDict
@@ -380,8 +389,8 @@ if __name__ == "__main__":
     numberOfLS=10
     
     # define run range (different eras are usually run in different dag jobs)
-    startingRun=370300
-    stoppingRun=370300
+    startingRun=368410
+    stoppingRun=368410
     
     ################################# End Config Part ###############################################################
     
