@@ -104,7 +104,7 @@ process.GlobalTag.toGet = cms.VPSet(
     cms.PSet(
         record = cms.string('AlignPCLThresholdsHGRcd'),
         tag = cms.string('PCLThresholds_express_v0'),
-        connect = cms.string('sqlite_file:/afs/cern.ch/user/d/dmeuser/alignment/PCL/condor_PCL_2023/CMSSW_13_3_0_pre4/src/CondFormats/PCLConfig/test/mythresholds_HG.db')),
+        connect = cms.string('sqlite_file:/afs/cern.ch/cms/CAF/CMSALCA/ALCA_TRACKERALIGN/data/commonValidation/alignmentObjects/phnattla/2023/PCL/CMSSW_13_3_0_pre4/src/CondFormats/PCLConfig/test/mythresholds_HG.db')),
         )
 
 # Path and EndPath definitions

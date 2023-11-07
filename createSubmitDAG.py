@@ -354,7 +354,6 @@ if __name__ == "__main__":
     ################################# Config Part ###############################################################
     
     # define workspace, base directory and output directory (has to be changed for different user)
-    # $projectName ??
     workPath ="/afs/cern.ch/cms/CAF/CMSALCA/ALCA_TRACKERALIGN/data/commonValidation/alignmentObjects/phnattla/2023/PCL/condor_PCL/run_directories"
     basePath = "/afs/cern.ch/cms/CAF/CMSALCA/ALCA_TRACKERALIGN/data/commonValidation/alignmentObjects/phnattla/2023/PCL/condor_PCL"
     logPath = "/afs/cern.ch/cms/CAF/CMSALCA/ALCA_TRACKERALIGN/data/commonValidation/alignmentObjects/phnattla/2023/PCL/condor_PCL/logs"
@@ -364,25 +363,27 @@ if __name__ == "__main__":
     url = "https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions23/DCSOnly_JSONS/Collisions23_13p6TeV_eraBCD_366403_370790_DCSOnly_TkPx.json"
     
     # define project name
-    projectName = "testZmumu"
+    projectName = "PCL_368410_HG_0"
     
     # define tag for import of SG
     tag = "TrackerAlignment_PCL_byRun_v2_express"
     
     # set alignment options
     useHG = True
-    useZmumu = True
+    useZmumu = False
     
     # set weight for Zmumu
     weightZmumu = 10
     
     # define the number of lumi sections to be used per run
     #  ~numberOfLS=100
-    numberOfLS=10
+    numberOfLS=500
     
     # define run range (different eras are usually run in different dag jobs)
-    startingRun=370300
-    stoppingRun=370300
+    # ~ startingRun=370300
+    # ~ stoppingRun=370310
+    startingRun=368410
+    stoppingRun=368410
     
     ################################# End Config Part ###############################################################
     
