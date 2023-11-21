@@ -372,7 +372,7 @@ if __name__ == "__main__":
     url = "https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions23/DCSOnly_JSONS/Collisions23_13p6TeV_eraBCD_366403_370790_DCSOnly_TkPx.json"
     
     # define project name
-    projectName = "PCL_368410_HG_0"
+    projectName = "PCL_369956_LS100_HG_0"
     
     # define tag for import of SG
     tag = "TrackerAlignment_PCL_byRun_v2_express"
@@ -382,15 +382,15 @@ if __name__ == "__main__":
     useZmumu = False
     
     # set weight for Zmumu
-    weightZmumu = 10
+    weightZmumu = 5
     
     # define the number of lumi sections to be used per run
     #  ~numberOfLS=100
-    numberOfLS=500
+    numberOfLS=100
     
     # define run range (different eras are usually run in different dag jobs)
-    startingRun=368410
-    stoppingRun=368410
+    startingRun=369956
+    stoppingRun=369956
     
     ################################# End Config Part ###############################################################
     
