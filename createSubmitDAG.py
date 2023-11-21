@@ -290,71 +290,40 @@ def writeDag_Trend(dirname):
     with open(dirname+"/dag_submit.dag","w") as f:
         f.write(dag)
     return "dag_submit.dag"
-    
 
-
-def submitRun(run,HG_bool,Zmumu_bool,LumisMax,LumisPerJob,StartLumi,SingleRun=True,weightZmumu=1):
-    if(Zmumu_bool and HG_bool==False):
-        print("Zmumu data can be only included in HG setup!!")
-        raise
-    
+def submitRunTotal(run,HG_bool,Zmumu_bool,LumisMax,LumisPerJob,weightZmumu=1):
     print "Preparing run",run
     fileDict=getFileList_run(run)
     if Zmumu_bool: fileDict_Zmumu=getFileList_run(run,Zmumu_bool)
-    if len(fileDict)>LumisMax:       # use only runs with at least 100 lumi sections
-        
-        LumisMax=min(max(fileDict.keys()),LumisMax)     # set maximal number of lumis to set value or maximum available lumis
-        
-        cleanOutputFolder(run,HG_bool,Zmumu_bool,True)     # clean output folder in case some run before fails
-        
-        for lumi in range(StartLumi,LumisMax+StartLumi,LumisPerJob):    # create run and log folder for each mille job and write config and submit
+    
+    
+    submittedLumis = [];
+    
+    if bool(fileDict):
+        for lumi in fileDict:
+            if lumi in submittedLumis:      #skip lumis already submitted
+                continue        
+            cleanOutputFolder(run,HG_bool,Zmumu_bool,True)     # clean output folder in case some run before fails
+            
             dirname_log=createLogFolder(run,lumi,HG_bool,Zmumu_bool)
             dirname_run=createRunFolder(run,lumi,HG_bool,Zmumu_bool)
             fileList=getFileList_job(fileDict,lumi,LumisPerJob)
             if Zmumu_bool: fileList_Zmumu=getFileList_job(fileDict_Zmumu,lumi,LumisPerJob)     #additional file list for Zmumu samples
+            
+            for nextLumi in range(lumi,lumi+LumisPerJob):
+                if nextLumi in fileDict:
+                    submittedLumis.append(nextLumi)
             
             writeMilleConfig(run,HG_bool,Zmumu_bool,lumi,LumisPerJob,fileList,dirname_run)
             if Zmumu_bool: writeMilleConfig(run,HG_bool,Zmumu_bool,lumi,LumisPerJob,fileList_Zmumu,dirname_run.replace("lumi_","lumi_Zmumu_"))
             
             writeMilleSubmit(run,HG_bool,Zmumu_bool,lumi,fileList,dirname_log)
             if Zmumu_bool: writeMilleSubmit(run,HG_bool,Zmumu_bool,lumi,fileList,dirname_log.replace("lumi_","lumi_Zmumu_"))
-    
-        dirname_totalRun=os.path.dirname(dirname_log)
-        writePedeSubmit(run,HG_bool,Zmumu_bool,dirname_totalRun,weightZmumu)       # write pede submit (not config needed since cmsDriver.py is used in pedeStep.sh)
-        if SingleRun:   # single runs are currently submitted right away
-            dugSubmit=writeDag(dirname_totalRun)
-            print "Submitting run",run
-            subprocess.call(["condor_submit_dag", "-f", dirname_totalRun+"/"+dugSubmit])
-        return True
-    else:
-        print "Not enough LumiSections"
-        return False
-
-def submitRunTotal(run,HG_bool,LumisPerJob):
-    print "Submitting run",run
-    fileDict=getFileList_run(run)    
-    
-    submittedLumis = []; 
-    
-    if bool(fileDict):
-        for lumi in fileDict:
-            if lumi in submittedLumis:
-                continue        
-            cleanOutputFolder(run,HG_bool,True)     # clean output folder in case some run before fails
             
-            dirname_log=createLogFolder(run,lumi,HG_bool)
-            dirname_run=createRunFolder(run,lumi,HG_bool)
-            fileList=getFileList_job(fileDict,lumi,LumisPerJob)
-            
-            for nextLumi in range(lumi,lumi+LumisPerJob):
-                if nextLumi in fileDict:
-                    submittedLumis.append(nextLumi)
-            
-            writeMilleConfig(run,HG_bool,lumi,LumisPerJob,fileList,dirname_run)
-            writeMilleSubmit(run,HG_bool,lumi,fileList,dirname_log)
+            if len(submittedLumis)>=LumisMax: break
         
         dirname_totalRun=os.path.dirname(dirname_log)
-        writePedeSubmit(run,HG_bool,dirname_totalRun)       # write pede submit (not config needed since cmsDriver.py is used in pedeStep.sh)
+        writePedeSubmit(run,HG_bool,Zmumu_bool,dirname_totalRun,weightZmumu)       # write pede submit (not config needed since cmsDriver.py is used in pedeStep.sh)
     else:
         print "Lumi list empty"
 
@@ -372,7 +341,7 @@ if __name__ == "__main__":
     url = "https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions23/DCSOnly_JSONS/Collisions23_13p6TeV_eraBCD_366403_370790_DCSOnly_TkPx.json"
     
     # define project name
-    projectName = "testZmumu"
+    projectName = "testZmumu_range"
     
     # define tag for import of SG
     tag = "TrackerAlignment_PCL_byRun_v2_express"
@@ -386,11 +355,11 @@ if __name__ == "__main__":
     
     # define the number of lumi sections to be used per run
     #  ~numberOfLS=100
-    numberOfLS=10
+    numberOfLS=20
     
     # define run range (different eras are usually run in different dag jobs)
-    startingRun=368410
-    stoppingRun=368410
+    startingRun=367881
+    stoppingRun=367883
     
     ################################# End Config Part ###############################################################
     
@@ -420,27 +389,11 @@ if __name__ == "__main__":
     totalLS=0
     startLongestRange=0
 
-    # loop over each run in the selected range
+    # prepare each run in the selected range
     for run in data:
         if int(run)>=startingRun and int(run)<=stoppingRun:
-            for lsRange in data[run]:   # loop to find the longest range of lumis and store its length
-                if lsRange[1]-lsRange[0]>longestRange: 
-                    longestRange=lsRange[1]-lsRange[0]
-                    startLongestRange=lsRange[0]
-                totalLS+=lsRange[1]-lsRange[0]
-            if longestRange>numberOfLS:    # use run only if there is a lumi range with more an numberOfLS LS
-                if startLongestRange<20:startLongestRange=20    # do not use the first 20 Lumis (match PCL config)
-                submitRun(run,int(useHG),int(useZmumu),numberOfLS,5,startLongestRange,False,weightZmumu)   #prepare run
-            longestRange=0      # set variables to zero for next run
-            totalLS=0
+            submitRunTotal(run,int(useHG),int(useZmumu),numberOfLS,5,weightZmumu)
             
-    # Submit all runs with full LS (second argument of submitRunTotal defines LG or HG)
-    '''
-    for run in data:
-        if int(run)>=startingRun and int(run)<=stoppingRun:
-            #  ~submitRunTotal(run,1,5) #HG
-            #  ~submitRunTotal(run,0,5) #LG
-    '''
     
     # write dag submits for trends
     writeDag_Trend(logPath)
