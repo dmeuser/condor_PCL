@@ -222,6 +222,7 @@ Log        = {2}/log_mille.log
 Output     = {2}/out_mille.out
 Error      = {2}/error_mille.error
 x509userproxy = $ENV(X509_USER_PROXY)
+MY.WantOS  = "el7"
 +JobFlavour = "microcentury"
 +AccountingGroup = "group_u_CMS.CAF.ALCA"
 Queue
@@ -238,6 +239,7 @@ Arguments  = {0} {1} {3} {4} {5}
 Log        = {2}/log_pede.log
 Output     = {2}/out_pede.out
 Error      = {2}/error_pede.error
+MY.WantOS  = "el7"
 +JobFlavour = "workday"
 +AccountingGroup = "group_u_CMS.CAF.ALCA"
 Queue
@@ -341,7 +343,7 @@ if __name__ == "__main__":
     url = "https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions23/DCSOnly_JSONS/Collisions23_13p6TeV_eraBCD_366403_370790_DCSOnly_TkPx.json"
     
     # define project name
-    projectName = "testZmumu_range"
+    projectName = "testFail_command"
     
     # define tag for import of SG
     tag = "TrackerAlignment_PCL_byRun_v2_express"

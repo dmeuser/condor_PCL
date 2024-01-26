@@ -1,6 +1,10 @@
 #!/bin/bash 
+set -e
 # script which takes care of running the mille step for the HG PCL studies
 # takes run number, boolean for HG running and start_lumi(only for proper folder/file names) as command line arguments
+export VO_CMS_SW_DIR=/cvmfs/cms.cern.ch
+source $VO_CMS_SW_DIR/cmsset_default.sh 
+
 RunNo="$1"
 HG_bool=$2
 Zmumu_bool=$3   #running a campaign with Zmumu (can be also job with minBias input)
