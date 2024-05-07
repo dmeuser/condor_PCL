@@ -3,7 +3,7 @@ import os
 import shutil
 import pickle
 import fileinput
-import urllib
+import urllib.request
 import json
 import collections
 
@@ -18,53 +18,28 @@ def merge_two_dicts(x, y):
 def getFileList_run(run,Zmumu_bool=False):
     run=int(run)
     #  ~if run<355094 or run>357815:    # check which run era has to be used
-        #  ~print "Dataset to run "+run+" not defined"
+        #  ~print("Dataset to run "+run+" not defined")
     #  ~elif run<=355769:
         #  ~output=subprocess.check_output(["dasgoclient -query='lumi,file dataset=/StreamExpress/Run2022B-TkAlMinBias-Express-v1/ALCARECO run={}'".format(run)], shell=True)
     #  ~elif run<=357482:
         #  ~output=subprocess.check_output(["dasgoclient -query='lumi,file dataset=/StreamExpress/Run2022C-TkAlMinBias-Express-v1/ALCARECO run={}'".format(run)], shell=True)
     #  ~elif run<=357815:
         #  ~output=subprocess.check_output(["dasgoclient -query='lumi,file dataset=/StreamExpress/Run2022D-TkAlMinBias-Express-v1/ALCARECO run={}'".format(run)], shell=True)
-    if run<366403 or run>370580:    # check which run era has to be used 
-        print "Dataset to run "+run+" not defined"
-    elif run<=367079:
+    if run<378981 or run>379618:    # check which run era has to be used 
+        print("Dataset to run ",run," not defined")
+    elif run<=379391:
         if Zmumu_bool:
-            output=subprocess.check_output(["dasgoclient -query='lumi,file dataset=/Muon0/Run2023B-TkAlZMuMu-PromptReco-v1/ALCARECO run={}'".format(run)], shell=True)
-            output+=subprocess.check_output(["dasgoclient -query='lumi,file dataset=/Muon1/Run2023B-TkAlZMuMu-PromptReco-v1/ALCARECO run={}'".format(run)], shell=True)
+            output=subprocess.check_output(["dasgoclient -query='lumi,file dataset=/StreamExpress/Run2024B-TkAlZMuMu-Express-v1/ALCARECO run={}'".format(run)], shell=True)
         else:
-            output=subprocess.check_output(["dasgoclient -query='lumi,file dataset=/HLTPhysics/Run2023B-TkAlMinBias-PromptReco-v1/ALCARECO run={}'".format(run)], shell=True)
-    elif run<=367619:
+            output=subprocess.check_output(["dasgoclient -query='lumi,file dataset=/StreamExpress/Run2024B-TkAlMinBias-Express-v1/ALCARECO run={}'".format(run)], shell=True)
+    elif run<=379618:
         if Zmumu_bool:
-            output=subprocess.check_output(["dasgoclient -query='lumi,file dataset=/Muon0/Run2023C-TkAlZMuMu-PromptReco-v1/ALCARECO run={}'".format(run)], shell=True)
-            output+=subprocess.check_output(["dasgoclient -query='lumi,file dataset=/Muon1/Run2023C-TkAlZMuMu-PromptReco-v1/ALCARECO run={}'".format(run)], shell=True)
+            output=subprocess.check_output(["dasgoclient -query='lumi,file dataset=/StreamExpress/Run2024C-TkAlZMuMu-Express-v1/ALCARECO run={}'".format(run)], shell=True)
         else:
-            output=subprocess.check_output(["dasgoclient -query='lumi,file dataset=/HLTPhysics/Run2023C-TkAlMinBias-PromptReco-v1/ALCARECO run={}'".format(run)], shell=True)
-    elif run<=367840:
-        if Zmumu_bool:
-            output=subprocess.check_output(["dasgoclient -query='lumi,file dataset=/Muon0/Run2023C-TkAlZMuMu-PromptReco-v2/ALCARECO run={}'".format(run)], shell=True)
-            output+=subprocess.check_output(["dasgoclient -query='lumi,file dataset=/Muon1/Run2023C-TkAlZMuMu-PromptReco-v2/ALCARECO run={}'".format(run)], shell=True)
-        else:
-            output=subprocess.check_output(["dasgoclient -query='lumi,file dataset=/HLTPhysics/Run2023C-TkAlMinBias-PromptReco-v2/ALCARECO run={}'".format(run)], shell=True)
-    elif run<=369802:
-        if Zmumu_bool:
-            output=subprocess.check_output(["dasgoclient -query='lumi,file dataset=/Muon0/Run2023C-TkAlZMuMu-PromptReco-v4/ALCARECO run={}'".format(run)], shell=True)
-            output+=subprocess.check_output(["dasgoclient -query='lumi,file dataset=/Muon1/Run2023C-TkAlZMuMu-PromptReco-v4/ALCARECO run={}'".format(run)], shell=True)
-        else:
-            output=subprocess.check_output(["dasgoclient -query='lumi,file dataset=/HLTPhysics/Run2023C-TkAlMinBias-PromptReco-v4/ALCARECO run={}'".format(run)], shell=True)
-    elif run<=370580:
-        if Zmumu_bool:
-            output=subprocess.check_output(["dasgoclient -query='lumi,file dataset=/Muon0/Run2023D-TkAlZMuMu-PromptReco-v1/ALCARECO run={}'".format(run)], shell=True)
-            output+=subprocess.check_output(["dasgoclient -query='lumi,file dataset=/Muon1/Run2023D-TkAlZMuMu-PromptReco-v1/ALCARECO run={}'".format(run)], shell=True)
-        else:
-            output=subprocess.check_output(["dasgoclient -query='lumi,file dataset=/HLTPhysics/Run2023D-TkAlMinBias-PromptReco-v1/ALCARECO run={}'".format(run)], shell=True)
-    elif run<=371227:
-        if Zmumu_bool:
-            output=subprocess.check_output(["dasgoclient -query='lumi,file dataset=/Muon0/Run2023D-TkAlZMuMu-PromptReco-v2/ALCARECO run={}'".format(run)], shell=True)
-            output+=subprocess.check_output(["dasgoclient -query='lumi,file dataset=/Muon1/Run2023D-TkAlZMuMu-PromptReco-v2/ALCARECO run={}'".format(run)], shell=True)
-        else:
-            output=subprocess.check_output(["dasgoclient -query='lumi,file dataset=/HLTPhysics/Run2023D-TkAlMinBias-PromptReco-v2/ALCARECO run={}'".format(run)], shell=True)
+            output=subprocess.check_output(["dasgoclient -query='lumi,file dataset=/StreamExpress/Run2024C-TkAlMinBias-Express-v1/ALCARECO run={}'".format(run)], shell=True)
     fileDict={}
-    for line in output.split("\n"):     #create dictionary to save filenames per lumi (each line corresponds to one file)
+    for line in output.split(b"\n"):     #create dictionary to save filenames per lumi (each line corresponds to one file)
+        line = line.decode()  # Convert bytes to string
         if len(line.split("["))==2 :
             lumi = line.split("[")[1].split("]")[0].split(",")      # get list of lumiNo from das output
             fileName = line.split("[")[0]
@@ -79,8 +54,8 @@ def getFileList_run(run,Zmumu_bool=False):
     return fileDict
     
 # method do import starting geometry from global tag
-def getSGfromTag(tag,run,HG_bool,Zmumu_bool):
-    print "Import starting geomtry from tag "+tag
+def getSGfromTag(tag,run,HG_bool,Zmumu_bool,fromPrevios=True):
+    print("Import starting geomtry from tag "+tag)
     
     if not os.path.exists(outputPath):  #create output path
         try:
@@ -99,7 +74,10 @@ def getSGfromTag(tag,run,HG_bool,Zmumu_bool):
     else :
         outputFile="payloads.db"
         outputName="SiPixelAli_pcl"
-    output=subprocess.check_output(["conddb_import -f frontier://FrontierProd/CMS_CONDITIONS -i {0} -c sqlite:{1} -b {2} -e {2} -t {3}".format(tag,outputFile,run-1,outputName)], shell=True)
+    if fromPrevios:
+        output=subprocess.check_output(["conddb_import -f frontier://FrontierProd/CMS_CONDITIONS -i {0} -c sqlite:{1} -b {2} -e {2} -t {3}".format(tag,outputFile,run-1,outputName)], shell=True)
+    else:
+        output=subprocess.check_output(["conddb_import -f frontier://FrontierProd/CMS_CONDITIONS -i {0} -c sqlite:{1} -b {2} -e {2} -t {3}".format(tag,outputFile,run,outputName)], shell=True)
     shutil.move(outputFile,outputPath+"/"+outputFile)
     
 # method to create the log folder, returns path to log folder
@@ -221,8 +199,7 @@ Arguments  = {0} {1} {4} {5} {3} {6}
 Log        = {2}/log_mille.log
 Output     = {2}/out_mille.out
 Error      = {2}/error_mille.error
-x509userproxy = $ENV(X509_USER_PROXY)
-MY.WantOS  = "el7"
+Proxy_path = $ENV(X509_USER_PROXY)
 +JobFlavour = "microcentury"
 +AccountingGroup = "group_u_CMS.CAF.ALCA"
 Queue
@@ -239,7 +216,6 @@ Arguments  = {0} {1} {3} {4} {5}
 Log        = {2}/log_pede.log
 Output     = {2}/out_pede.out
 Error      = {2}/error_pede.error
-MY.WantOS  = "el7"
 +JobFlavour = "workday"
 +AccountingGroup = "group_u_CMS.CAF.ALCA"
 Queue
@@ -294,7 +270,7 @@ def writeDag_Trend(dirname):
     return "dag_submit.dag"
 
 def submitRunTotal(run,HG_bool,Zmumu_bool,LumisMax,LumisPerJob,weightZmumu=1):
-    print "Preparing run",run
+    print("Preparing run",run)
     fileDict=getFileList_run(run)
     if Zmumu_bool: fileDict_Zmumu=getFileList_run(run,Zmumu_bool)
     
@@ -327,41 +303,45 @@ def submitRunTotal(run,HG_bool,Zmumu_bool,LumisMax,LumisPerJob,weightZmumu=1):
         dirname_totalRun=os.path.dirname(dirname_log)
         writePedeSubmit(run,HG_bool,Zmumu_bool,dirname_totalRun,weightZmumu)       # write pede submit (not config needed since cmsDriver.py is used in pedeStep.sh)
     else:
-        print "Lumi list empty"
+        print("Lumi list empty")
 
 if __name__ == "__main__":
         
     ################################# Config Part ###############################################################
     
     # define workspace, base directory and output directory (has to be changed for different user)
-    workPath ="/afs/cern.ch/work/d/dmeuser/alignment/PCL/condor_PCL_2023/run_directories"
-    basePath = "/afs/cern.ch/user/d/dmeuser/alignment/PCL/condor_PCL_2023/condor_PCL"
-    logPath = "/afs/cern.ch/user/d/dmeuser/alignment/PCL/condor_PCL_2023/condor_PCL/logs"
-    outputPath = "/eos/cms/store/caf/user/dmeuser/PCL/condor_PCL_2023/output"
+    #  ~workPath = "/afs/cern.ch/work/d/dmeuser/alignment/PCL/condor_PCL_2024/run_directories"
+    workPath = "/eos/cms/store/caf/user/dmeuser/PCL/workspace/condor_PCL_2024/run_directories"
+    basePath = "/afs/cern.ch/user/d/dmeuser/alignment/PCL/condor_PCL_2024/condor_PCL"
+    logPath = "/afs/cern.ch/user/d/dmeuser/alignment/PCL/condor_PCL_2024/condor_PCL/logs"
+    outputPath = "/eos/cms/store/caf/user/dmeuser/PCL/condor_PCL_2024/output"
 
     # set json
-    url = "https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions23/DCSOnly_JSONS/Collisions23_13p6TeV_eraBCD_366403_370790_DCSOnly_TkPx.json"
+    url = "https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions24/DCSOnly_JSONS/dailyDCSOnlyJSON/Collisions24_13p6TeV_378981_379618_DCSOnly_TkPx.json"
     
     # define project name
-    projectName = "testFail_command"
+    projectName = "SG_beforeCycle_starting_379238_379530_noZMuMu"
     
     # define tag for import of SG
-    tag = "TrackerAlignment_PCL_byRun_v2_express"
+    #  ~tag = "TrackerAlignment_PCL_byRun_v2_express"
+    tag = "TrackerAlignment_collisions24_v0"
     
     # set alignment options
     useHG = True
-    useZmumu = True
+    #  ~useZmumu = True
+    useZmumu = False
     
     # set weight for Zmumu
     weightZmumu = 10
     
     # define the number of lumi sections to be used per run
     #  ~numberOfLS=100
-    numberOfLS=20
+    #  ~numberOfLS=20
+    numberOfLS=99999
     
     # define run range (different eras are usually run in different dag jobs)
-    startingRun=367881
-    stoppingRun=367883
+    startingRun=379238
+    stoppingRun=379530
     
     ################################# End Config Part ###############################################################
     
@@ -371,17 +351,16 @@ if __name__ == "__main__":
     outputPath = outputPath+"/"+projectName
     
     # get starting geometry from tag
-    getSGfromTag(tag,startingRun,useHG,useZmumu)
+    #  ~getSGfromTag(tag,startingRun,useHG,useZmumu)
+    getSGfromTag(tag,startingRun,useHG,useZmumu,False)
     
     # clean log/run folder
     if os.path.exists(logPath): shutil.rmtree(logPath)
     if os.path.exists(workPath): shutil.rmtree(workPath)
 
-    # open url
-    response = urllib.urlopen(url)
-
-    # read json (and merge with lowPU)
-    data = json.loads(response.read())
+    # Open URL
+    with urllib.request.urlopen(url) as response:
+        data = json.loads(response.read().decode())
 
     # get ordered dictionary with {run:"lumiRange1, lumiRange2"}
     data = collections.OrderedDict(sorted(data.items()))

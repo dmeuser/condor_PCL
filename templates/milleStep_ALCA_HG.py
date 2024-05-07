@@ -2,7 +2,7 @@
 # using: 
 # Revision: 1.19 
 # Source: /local/reps/CMSSW/CMSSW/Configuration/Applications/python/ConfigBuilder.py,v 
-# with command line options: milleStep -s ALCA:PromptCalibProdSiPixelAliHG --conditions 130X_dataRun3_Prompt_v2 --datatier ALCARECO --eventcontent ALCARECO --triggerResultsProcess RECO --customise_commands process.MessageLogger.cerr.FwkReport.reportEvery = 1000 --processName=ReALCA -n -1 --no_exec
+# with command line options: milleStep -s ALCA:PromptCalibProdSiPixelAliHG --conditions 140X_dataRun3_Express_v3 --datatier ALCARECO --eventcontent ALCARECO --triggerResultsProcess RECO --customise_commands process.MessageLogger.cerr.FwkReport.reportEvery = 1000 --processName=ReALCA -n -1 --no_exec
 import FWCore.ParameterSet.Config as cms
 
 
@@ -35,7 +35,7 @@ process.source = cms.Source("PoolSource",
 process.options = cms.untracked.PSet(
     IgnoreCompletely = cms.untracked.vstring(),
     Rethrow = cms.untracked.vstring(),
-    TryToContinue = cms.untracked.vstring(),
+    TryToContinue = cms.untracked.vstring('ProductNotFound'),
     accelerators = cms.untracked.vstring('*'),
     allowUnscheduled = cms.obsolete.untracked.bool,
     canDeleteEarly = cms.untracked.vstring(),
@@ -94,7 +94,7 @@ process.ALCARECOStreamPromptCalibProdSiPixelAliHG = cms.OutputModule("PoolOutput
 # Other statements
 process.ALCARECOEventContent.outputCommands.extend(process.OutALCARECOPromptCalibProdSiPixelAliHG_noDrop.outputCommands)
 from Configuration.AlCa.GlobalTag import GlobalTag
-process.GlobalTag = GlobalTag(process.GlobalTag, '130X_dataRun3_Prompt_v2', '')
+process.GlobalTag = GlobalTag(process.GlobalTag, '140X_dataRun3_Express_v3', '')
 # Use different Starting Geometry and different Thresholds
 process.GlobalTag.toGet = cms.VPSet(
     cms.PSet(
@@ -104,7 +104,7 @@ process.GlobalTag.toGet = cms.VPSet(
     cms.PSet(
         record = cms.string('AlignPCLThresholdsHGRcd'),
         tag = cms.string('PCLThresholds_express_v0'),
-        connect = cms.string('sqlite_file:/afs/cern.ch/user/d/dmeuser/alignment/PCL/condor_PCL_2023/CMSSW_13_3_0_pre4/src/CondFormats/PCLConfig/test/mythresholds_HG.db')),
+        connect = cms.string('sqlite_file:/afs/cern.ch/user/d/dmeuser/alignment/PCL/condor_PCL_2024/CMSSW_14_0_4/src/CondFormats/PCLConfig/test/mythresholds_HG.db')),
         )
 
 # Path and EndPath definitions
